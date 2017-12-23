@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CONFIG>
+  <ProjectSession>
+    <PathDelim Value="\"/>
+    <Version Value="10"/>
+    <BuildModes Active="Debug"/>
+    <Units Count="2">
+      <Unit0>
+        <Filename Value="TDefenceGame.lpr"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <WindowIndex Value="-1"/>
+        <TopLine Value="-1"/>
+        <CursorPos X="-1" Y="-1"/>
+        <UsageCount Value="20"/>
+      </Unit0>
+      <Unit1>
+        <Filename Value="untmain.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="frmMain"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="untMain"/>
+        <IsVisibleTab Value="True"/>
+        <TopLine Value="82"/>
+        <CursorPos X="81" Y="110"/>
+        <UsageCount Value="20"/>
+        <Loaded Value="True"/>
+        <LoadedDesigner Value="True"/>
+      </Unit1>
+    </Units>
+    <JumpHistory Count="8" HistoryIndex="7">
+      <Position1>
+        <Filename Value="untmain.pas"/>
+        <Caret Line="47" Column="35" TopLine="31"/>
+      </Position1>
+      <Position2>
+        <Filename Value="untmain.pas"/>
+        <Caret Line="74" Column="26" TopLine="38"/>
+      </Position2>
+      <Position3>
+        <Filename Value="untmain.pas"/>
+        <Caret Line="73" Column="45" TopLine="38"/>
+      </Position3>
+      <Position4>
+        <Filename Value="untmain.pas"/>
+        <Caret Line="99" Column="10" TopLine="58"/>
+      </Position4>
+      <Position5>
+        <Filename Value="untmain.pas"/>
+        <Caret Line="101" Column="35" TopLine="58"/>
+      </Position5>
+      <Position6>
+        <Filename Value="untmain.pas"/>
+        <Caret Line="73" Column="25" TopLine="51"/>
+      </Position6>
+      <Position7>
+        <Filename Value="untmain.pas"/>
+        <Caret Line="75" Column="25" TopLine="53"/>
+      </Position7>
+      <Position8>
+        <Filename Value="untmain.pas"/>
+        <Caret Line="110" Column="18" TopLine="76"/>
+      </Position8>
+    </JumpHistory>
+  </ProjectSession>
+</CONFIG>
