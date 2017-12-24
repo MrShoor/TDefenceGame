@@ -14,7 +14,8 @@ uses
   UPhysics2DHelper in 'Physics2D\UPhysics2DHelper.pas',
   UPhysics2DPolygonTool in 'Physics2D\UPhysics2DPolygonTool.pas',
   UPhysics2DTypes in 'Physics2D\UPhysics2DTypes.pas',
-  gtypes in 'gtypes.pas';
+  gtypes in 'gtypes.pas',
+  gunits in 'gunits.pas';
 
 {$R *.res}
 

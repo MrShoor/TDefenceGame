@@ -11,11 +11,12 @@ uses
   mutils,
   avBase,
   Classes, SysUtils,
-  avContnrs, avTypes, avTess, avRes;
+  avContnrs, avTypes, avTess, avRes,
+  SpineIntf;
 
 const
   SHADERS_FROMRES = False;
-  SHADERS_DIR = 'D:\Projects\Adria\Adria_shaders\!Out';
+  SHADERS_DIR = 'D:\Projects\TDefenceGame\TDefenceGame_Shaders\!Out';
 
 type
   TZIndex = Integer;
@@ -35,8 +36,11 @@ type
   TSpineExVertices = {$IfDef FPC}specialize{$EndIf} TVerticesRec<TSpineVertexEx>;
 
   TGameSpineRes = packed record
-    dir: string;
+    SpineSkel : IspSkeleton;
+    SpineAnim : IspAnimationState;
+    procedure LoadFromDir(const ADir: string; const AAtlas: TavAtlasArrayReferenced);
   end;
+  PGameSpineRes = ^TGameSpineRes;
 
   TGameResource = packed record
     images  : array of ISpriteIndex;
@@ -47,7 +51,7 @@ type
 
     shadowcasters: array of TVec2Arr;
 
-    spine   : array of TGameSpineRes;
+    spine : array of TGameSpineRes;
   end;
 
   TRenderBatchKind = (rbkUnknown, rbkSpine, rbkSpineLighted, rbkParticles, rbkParticlesLighted);
@@ -95,7 +99,54 @@ type
   TShadowVertices = {$IfDef FPC}specialize{$EndIf}TVerticesRec<TShadowVertex>;
 //end of light types
 
+function GetSpineVertexCallBack(const ASpineVert: ISpineExVertices; const ATransform: TMat3): ISpineAddVertexCallback;
+
 implementation
+
+type
+  ISpineAddVertexCallback_Internal = interface (ISpineAddVertexCallback)
+    procedure SetArray(const AVert: ISpineExVertices; const ATransform: TMat3);
+  end;
+
+  { TSpineAddVertexCallback_Internal }
+
+  TSpineAddVertexCallback_Internal = class(TInterfacedObject, ISpineAddVertexCallback_Internal)
+  private
+    FVert: Pointer;//ISpineExVertices
+    FTransform: TMat3;
+  public
+    procedure AddVertex(const Coord: TVec3; const TexCoord: TVec2; const Color: TVec4; const AtlasRef: Single);
+    procedure SetArray(const AVert: ISpineExVertices; const ATransform: TMat3);
+  end;
+
+threadvar gvCB: ISpineAddVertexCallback_Internal;
+
+function GetSpineVertexCallBack(const ASpineVert: ISpineExVertices; const ATransform: TMat3): ISpineAddVertexCallback;
+begin
+  if gvCB = nil then gvCB := TSpineAddVertexCallback_Internal.Create;
+  gvCB.SetArray(ASpineVert, ATransform);
+  Result := gvCB;
+end;
+
+{ TSpineAddVertexCallback_Internal }
+
+procedure TSpineAddVertexCallback_Internal.AddVertex(const Coord: TVec3; const TexCoord: TVec2; const Color: TVec4; const AtlasRef: Single);
+var v: TSpineVertexEx;
+begin
+  v.vsCoord.xy := Coord.xy * FTransform;
+  v.vsCoord.z := Coord.z;
+  v.vsTexCrd := TexCoord;
+  v.vsColor := Color;
+  v.vsAtlasRef := AtlasRef;
+  v.vsWrapMode := Vec(0, 0);
+  ISpineExVertices(FVert).Add(v);
+end;
+
+procedure TSpineAddVertexCallback_Internal.SetArray(const AVert: ISpineExVertices; const ATransform: TMat3);
+begin
+  FVert := Pointer(AVert);
+  FTransform := ATransform;
+end;
 
 { TRenderBatch }
 
@@ -141,6 +192,25 @@ begin
               .Add('vsAtlasRef', ctFloat, 1)
               .Add('vsWrapMode', ctFloat, 2)
               .Finish();
+end;
+
+{ TGameSpineRes }
+
+procedure TGameSpineRes.LoadFromDir(const ADir: string; const AAtlas: TavAtlasArrayReferenced);
+var Dir: string;
+    skel, atlas: string;
+begin
+  SpineSkel := nil;
+  SpineAnim := nil;
+  Dir := ExtractFilePath(ParamStr(0)) + 'SpineRes\' + ADir;
+  if not DirectoryExists(Dir) then Exit;
+  skel := Dir + '\skeleton.skel';
+  if not FileExists(skel) then Exit;
+  atlas := Dir + '\skeleton.atlas';
+  if not FileExists(atlas) then Exit;
+  SpineSkel := Create_IspSkeleton(atlas, skel, AAtlas, 2.0/333);
+  SpineAnim := Create_IspAnimationState(SpineSkel, 0.1);
+  SpineAnim.SetAnimationByName(0, 'idle', true);
 end;
 
 end.

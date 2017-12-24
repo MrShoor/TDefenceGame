@@ -395,6 +395,17 @@ class function TLevelLoader.LoadItem(const AObj: ISuperObject; const AWorld: TWo
     end;
   end;
 
+  procedure LoadSpineGraphics(const ACp: TCustomParams; var ARes: TGameResource);
+  var i: Integer;
+  begin
+    for i := 0 to Length(ACp) - 1 do
+      if SameText('spine', ACp[i].name) then
+      begin
+        SetLength(ARes.spine, Length(ARes.spine) + 1);
+        ARes.spine[High(ARes.spine)].LoadFromDir(ACp[i].value, AWorld.Atlas);
+      end;
+  end;
+
 var itemType: TGameObjectClass;
     vert   : ISpineExVertices;
     sprites: ISpriteIndexSet;
@@ -411,14 +422,14 @@ begin
   LoadTris(AObj.O['Tris'], res);
   LoadFixtures(AObj.O['Fixtures'], res);
   LoadShadowCasters(AObj.O['Shadow'], res);
+  LoadSpineGraphics(cp, res);
 
   Result := itemType.Create(AWorld);
+  Result.SetResource(res);
   Result.Size := GetVec2_Def(AObj, 'Scale', Vec(1,1));
   Result.Dir := VecSinCos(GetD_Def(AObj, 'Rot', 0));
   Result.Pos := GetVec2_Def(AObj, 'Pos', Vec(0,0));
   Result.Name := AObj.S['Name'];
-
-  Result.SetResource(res);
 end;
 
 class procedure TLevelLoader.LoadLayer(const AObj: ISuperObject; const AWorld: TWorld; const ALayer: TGameLayer; const AImages: TImageList);

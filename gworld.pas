@@ -58,6 +58,9 @@ type
     property Dir  : TVec2  read GetDir   write SetDir;
     property Size : TVec2  read GetSize  write SetSize;
 
+    function GetTransform: TMat3;
+    function GetTransformInv: TMat3;
+
     procedure SetResource(const ARes: TGameResource);
 
     function  HasSpineTris: Boolean; virtual;
@@ -214,6 +217,8 @@ type
     FCommonTextures: TWorldCommonTextures;
     function GetCommonTextures: PWorldCommonTextures;
   public
+    function FindPlayerObject: TGameObject;
+
     property Atlas: TavAtlasArrayReferenced read FAtlas;
 
     procedure UpdateStep(const ANewCameraPos: TVec2);
@@ -222,6 +227,7 @@ type
     procedure GetAllDrawData(const ARenderBatches: IRenderBatchArr; const ALights: ILightInfoArr; const AShadowCasters: IShadowVertices);
 
     constructor Create(const AAtlas: TavAtlasArrayReferenced);
+    destructor Destroy; override;
   end;
 
 procedure Draw_Sprite(const AVert: ISpineExVertices; const pos, dir, size: TVec2; const ASprite: ISpriteIndex; const Color: PVec4 = nil); overload;
@@ -232,7 +238,7 @@ procedure Draw_Rect  (const AVert: ISpineExVertices; const APattern: ISpriteInde
 implementation
 
 uses
-  Math, avTexLoader;
+  Math, avTexLoader, gUnits;
 
 const
   QuadCrd: array[0..3] of TVec2 = (
@@ -340,30 +346,26 @@ end;
 { TGameDynamicBody }
 
 function TGameDynamicBody.CreateBodyDef(const APos: TVector2; const AAngle: Double): Tb2BodyDef;
-var
-  bDef: Tb2BodyDef;
 begin
-  bDef := Tb2BodyDef.Create;
-  bDef.bodyType := b2_dynamicBody;
-  bDef.userData := Self;
-  bDef.position := APos;
-  bDef.angle := AAngle;
-  bDef.linearDamping := 7.5;
-  bDef.angularDamping := 7.5;
-  bDef.allowSleep := True;
+  Result := Tb2BodyDef.Create;
+  Result.bodyType := b2_dynamicBody;
+  Result.userData := Self;
+  Result.position := APos;
+  Result.angle := AAngle;
+  Result.linearDamping := 10.5;
+  Result.angularDamping := 10.5;
+  Result.allowSleep := True;
 end;
 
 { TGameStaticBody }
 
 function TGameStaticBody.CreateBodyDef(const APos: TVector2; const AAngle: Double): Tb2BodyDef;
-var
-  bDef: Tb2BodyDef;
 begin
-  bDef := Tb2BodyDef.Create;
-  bDef.bodyType := b2_staticBody;
-  bDef.userData := Self;
-  bDef.position := APos;
-  bDef.angle := AAngle;
+  Result := Tb2BodyDef.Create;
+  Result.bodyType := b2_staticBody;
+  Result.userData := Self;
+  Result.position := APos;
+  Result.angle := AAngle;
 end;
 
 { TGameBody }
@@ -471,6 +473,7 @@ end;
 procedure TGameSingleBody.BuildBody;
 var currPos  : TVector2;
     currAngle: Double;
+    bdef: Tb2BodyDef;
 begin
   if FMainBody <> nil then
   begin
@@ -486,7 +489,8 @@ begin
     currAngle := 0;
   end;
 
-  FMainBody := FWorld.Fb2World.CreateBody(CreateBodyDef(currPos, currAngle), True);
+  bdef := CreateBodyDef(currPos, currAngle);
+  FMainBody := FWorld.Fb2World.CreateBody(bdef, True);
   AddFixturesToBody;
 end;
 
@@ -697,6 +701,14 @@ begin
   FToDestroy.Clear;
 end;
 
+function TWorld.FindPlayerObject: TGameObject;
+begin
+  FObjects.Reset;
+  while FObjects.Next(Result) do
+    if Result is TPlayer then Exit;
+  Result := nil;
+end;
+
 procedure TWorld.GetAllDrawData(const ARenderBatches: IRenderBatchArr; const ALights: ILightInfoArr; const AShadowCasters: IShadowVertices);
 var gobj : TGameObject;
     objList: IGameObjArr;
@@ -776,6 +788,28 @@ begin
   FCommonTextures.Load(FAtlas);
 end;
 
+destructor TWorld.Destroy;
+var obj: TGameObject;
+    i: Integer;
+begin
+  FSndPlayer := nil;
+
+  FreeAndNil(FRayCaster);
+  FreeAndNil(FTreeQuery);
+  FreeAndNil(Fb2ContactListener);
+  FreeAndNil(Fb2ContactFilter);
+
+  FTempObjs.Clear;
+  FObjects.Reset;
+  while FObjects.Next(obj) do
+    FTempObjs.Add(obj);
+  for i := 0 to FTempObjs.Count - 1 do
+    FTempObjs[i].Free;
+
+  Fb2World.Free;
+  inherited Destroy;
+end;
+
 { TGameObject }
 
 procedure TGameObject.SubscribeForUpdateStep;
@@ -791,6 +825,19 @@ end;
 procedure TGameObject.DoSetResource(const ARes: TGameResource);
 begin
   FRes := ARes;
+end;
+
+function TGameObject.GetTransform: TMat3;
+begin
+  Result := IdentityMat3;
+  Result.OX := Dir;
+  Result.OY := Rotate90(Dir, False);
+  Result.Pos := Pos;
+end;
+
+function TGameObject.GetTransformInv: TMat3;
+begin
+  Result := Inv(GetTransform());
 end;
 
 procedure TGameObject.SetResource(const ARes: TGameResource);

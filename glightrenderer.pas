@@ -42,7 +42,6 @@ type
     FShadowProgram: TavProgram;
 
     FNoiseTex: TavTexture;
-    FDust: TavTexture;
     FGodRaysProgram: TavProgram;
 
     FDrawClustersProgram: TavProgram;
@@ -168,11 +167,6 @@ begin
   FShadowCastersVB := TavVB.Create(Self);
   FShadowCastersVB.PrimType := ptLines;
 
-  FDust := TavTexture.Create(Self);
-  FDust.TargetFormat := TTextureFormat.RGBA;
-  FDust.sRGB := False;
-  FDust.TexData := LoadTexture(ExtractFilePath(ParamStr(0))+'Dust.png');
-
   FLightMap    := TavTexture.Create(Self);
   FLightMap.TargetFormat := TTextureFormat.RGBA16f;
   FLightMapFBO := TavFrameBuffer.Create(Self);
@@ -237,7 +231,6 @@ begin
   FGodRaysProgram.SetUniform('LightMap', LightMap, Sampler_NoFilter);
   FGodRaysProgram.SetUniform('LightData', LightData);
   FGodRaysProgram.SetUniform('WorldTime', Main.Time);
-  FGodRaysProgram.SetUniform('Dust', FDust, Sampler_Linear);
   FGodRaysProgram.SetUniform('Noise', FNoiseTex, Sampler_Linear);
 //  FGodRaysProgram.Draw(FLightsData.Vertices.VerticesCount);
   FGodRaysProgram.Draw(ptTriangleStrip, cmNone, False, 0, 0, 4);

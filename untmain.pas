@@ -32,11 +32,24 @@ uses
   {$IfDef DCC}
   AppEvnts,
   {$EndIf}
-  gTypes, gWorld, gLightRenderer, gLevelLoader,
+  gTypes, gWorld, gLightRenderer, gLevelLoader, gUnits,
   avRes, avTypes,
+  intfUtils,
   mutils;
 
 type
+  TGameInput = class
+  public
+    function Right: Boolean;
+    function Left : Boolean;
+    function Up   : Boolean;
+    function Down : Boolean;
+
+    function Shoot: Boolean;
+    function Special: Boolean;
+
+    function RestartLevel: Boolean;
+  end;
 
   { TfrmMain }
 
@@ -54,7 +67,8 @@ type
     procedure FormPaint(Sender: TObject);
     procedure FPSTimerTimer(Sender: TObject);
   private
-    FMain    : TavMainRender;
+    FGameInput: TGameInput;
+    FMain     : TavMainRender;
 
     FFBO_HDR : TavFrameBuffer;
     FFBOMain : TavFrameBuffer;
@@ -76,12 +90,17 @@ type
     FFPSLast   : Integer;
 
     FLastTime : Int64;
+
+    FPlayerTank: IWeakRef;
+    function GetPlayerTank: TTowerTank;
+    procedure SetPlayerTank(const Value: TTowerTank);
   {$IfDef FPC}
   public
     procedure EraseBackground(DC: HDC); override;
   {$EndIf}
   public
     procedure UpdateCaption;
+    property PlayerTank: TTowerTank read GetPlayerTank write SetPlayerTank;
   public
     procedure Init;
     procedure BuildLevel;
@@ -121,7 +140,9 @@ end;
 
 procedure TfrmMain.FormDestroy(Sender: TObject);
 begin
+  FreeAndNil(FWorld);
   FreeAndNil(FMain);
+  FreeAndNil(FGameInput);
 end;
 
 procedure TfrmMain.FormPaint(Sender: TObject);
@@ -134,6 +155,14 @@ begin
   FFPSLast := FFPSCounter;
   FFPSCounter := 0;
   UpdateCaption;
+end;
+
+function TfrmMain.GetPlayerTank: TTowerTank;
+begin
+  Result := nil;
+  if FPlayerTank = nil then Exit;
+  Result := TTowerTank(FPlayerTank.Obj);
+  if Result = nil then FPlayerTank := nil;
 end;
 
 {$IfDef FPC}
@@ -153,7 +182,10 @@ var
   pCol: PByte;
   i: Integer;
 begin
+  FGameInput := TGameInput.Create;
+
   FMain := TavMainRender.Create(nil);
+  FMain.Camera.Eye := Vec(0,0,-18);
 
   FFBOMain := Create_FrameBuffer(FMain, [TTextureFormat.RGBA], [True]);
   FFBO_HDR := Create_FrameBuffer(FMain, [TTextureFormat.RGBA16f], [True]);
@@ -172,6 +204,7 @@ begin
 
   FLights := TLightInfoArr.Create();
   FShadowCasters := TShadowVertices.Create();
+  FRenderBatches := TRenderBatchArr.Create();
 
   FAtlas := TavAtlasArrayReferenced.Create(FMain);
   FAtlas.TargetFormat := TTextureFormat.RGBA;
@@ -199,11 +232,29 @@ begin
   FreeAndNil(FWorld);
   FWorld := TWorld.Create(FAtlas);
   TLevelLoader.LoadLevel(ExpandFileName('Levels\Level0.flat'), FWorld);
+  PlayerTank := FWorld.FindPlayerObject as TTowerTank;
 end;
 
 procedure TfrmMain.ProcessInput;
+var rot, acc: Single;
+    tank: TTowerTank;
+    intpt: TVec3;
 begin
+  if GetForegroundWindow <> Handle then Exit;
 
+  tank := PlayerTank;
+  if tank = nil then Exit;
+  rot := 0;
+  acc := 0;
+  if FGameInput.Left  then rot := rot + 1;
+  if FGameInput.Right then rot := rot - 1;
+  if FGameInput.Up    then acc := acc + 1;
+  if FGameInput.Down  then acc := acc - 1;
+  tank.RotateBy(rot);
+  tank.Move(acc);
+
+  if Intersect(Plane(0,0,1,0), FMain.Cursor.Ray, intpt) then
+    tank.TowerTargetAt(intpt.xy);
 end;
 
 procedure TfrmMain.RenderScene;
@@ -221,6 +272,7 @@ begin
   try
     FLights.Clear();
     FShadowCasters.Clear();
+    FRenderBatches.Clear();
     FWorld.GetAllDrawData(FRenderBatches, FLights, FShadowCasters);
 
     //FParticles.Simulate(FWorld.Time);
@@ -237,7 +289,7 @@ begin
       FShadowCasters
     );
 
-    if FRenderBatches.Count > 0 then pb := FRenderBatches.PItem[0];
+    if FRenderBatches.Count > 0 then pb := FRenderBatches.PItem[0] else pb := nil;
     lastKind := rbkUnknown;
     for i := 0 to FRenderBatches.Count - 1 do
     begin
@@ -291,6 +343,13 @@ begin
   end;
 end;
 
+procedure TfrmMain.SetPlayerTank(const Value: TTowerTank);
+begin
+  FPlayerTank := nil;
+  if Value <> nil then
+    FPlayerTank := Value.WeakRef;
+end;
+
 procedure TfrmMain.UpdateSteps;
 var
   i: Integer;
@@ -310,6 +369,43 @@ begin
     FMain.InvalidateWindow;
 end;
 
+
+{ TGameInput }
+
+function TGameInput.Down: Boolean;
+begin
+  Result := GetKeyState(Ord('S')) < 0;
+end;
+
+function TGameInput.Left: Boolean;
+begin
+  Result := GetKeyState(Ord('A')) < 0;
+end;
+
+function TGameInput.RestartLevel: Boolean;
+begin
+  Result := GetKeyState(Ord('R')) < 0;
+end;
+
+function TGameInput.Right: Boolean;
+begin
+  Result := GetKeyState(Ord('D')) < 0;
+end;
+
+function TGameInput.Shoot: Boolean;
+begin
+  Result := GetKeyState(VK_LBUTTON) < 0;
+end;
+
+function TGameInput.Special: Boolean;
+begin
+  Result := GetKeyState(VK_RBUTTON) < 0;
+end;
+
+function TGameInput.Up: Boolean;
+begin
+  Result := GetKeyState(Ord('W')) < 0;
+end;
 
 end.
 
