@@ -107,7 +107,7 @@
         <PackageName Value="LCL"/>
       </Item4>
     </RequiredPackages>
-    <Units Count="16">
+    <Units Count="17">
       <Unit0>
         <Filename Value="TDefenceGame.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -181,6 +181,11 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="gLightRenderer"/>
       </Unit15>
+      <Unit16>
+        <Filename Value="gunits.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="gUnits"/>
+      </Unit16>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

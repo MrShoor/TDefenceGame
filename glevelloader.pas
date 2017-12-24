@@ -257,12 +257,12 @@ class function TLevelLoader.LoadItem(const AObj: ISuperObject; const AWorld: TWo
   begin
     clsName := FindCustomValue(cp, 'Class');
     Result := FindClass(clsName);
-    //if Result <> nil then Exit;
-    //Result := TGameSprite;
-    //if AObj.O['Fixtures'] <> nil then
-    //  Result := TGameSingleBody;
+    if Result <> nil then Exit;
+    Result := TGameSprite;
+    if AObj.O['Fixtures'] <> nil then
+      Result := TGameSingleBody;
   end;
-//
+
   procedure LoadTris(const AObj: ISuperObject; var ARes: TGameResource);
     procedure AddSpriteIfNotExist(const ASprite: ISpriteIndex);
     var

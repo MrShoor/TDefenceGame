@@ -32,7 +32,7 @@ uses
   {$IfDef DCC}
   AppEvnts,
   {$EndIf}
-  gTypes, gWorld, gLightRenderer,
+  gTypes, gWorld, gLightRenderer, gLevelLoader,
   avRes, avTypes,
   mutils;
 
@@ -195,7 +195,10 @@ end;
 
 procedure TfrmMain.BuildLevel;
 begin
-
+  SetCurrentDir(ExtractFilePath(ParamStr(0)));
+  FreeAndNil(FWorld);
+  FWorld := TWorld.Create(FAtlas);
+  TLevelLoader.LoadLevel(ExpandFileName('Levels\Level0.flat'), FWorld);
 end;
 
 procedure TfrmMain.ProcessInput;
@@ -264,7 +267,7 @@ begin
 //                FMain.States.Wireframe := False;
             end;
           end;
-        rbkParticles, rbgParticlesLighted:
+        rbkParticles, rbkParticlesLighted:
           begin
 
           end;

@@ -9,8 +9,9 @@ interface
 
 uses
   mutils,
-  avContnrs, avTypes, avTess, avRes,
-  Classes, SysUtils;
+  avBase,
+  Classes, SysUtils,
+  avContnrs, avTypes, avTess, avRes;
 
 const
   SHADERS_FROMRES = False;
@@ -34,8 +35,7 @@ type
   TSpineExVertices = {$IfDef FPC}specialize{$EndIf} TVerticesRec<TSpineVertexEx>;
 
   TGameSpineRes = packed record
-    atlas: string;
-    skel : string;
+    dir: string;
   end;
 
   TGameResource = packed record
@@ -50,14 +50,18 @@ type
     spine   : array of TGameSpineRes;
   end;
 
-  TRenderBatchKind = (rbkUnknown, rbkSpine, rbkSpineLighted, rbkParticles, rbgParticlesLighted);
+  TRenderBatchKind = (rbkUnknown, rbkSpine, rbkSpineLighted, rbkParticles, rbkParticlesLighted);
+
+  IParticleGroupArr = {$IfDef FPC}specialize{$EndIf} IArray<TavObject>;
+  TParticleGroupArr = {$IfDef FPC}specialize{$EndIf} TArray<TavObject>;
+
+  { TRenderBatch }
 
   TRenderBatch = packed record
     Kind : TRenderBatchKind;
-
     SpineVerts: ISpineExVertices;
-
-    Particles : Pointer;
+    Particles : IParticleGroupArr;
+    procedure Clear;
   end;
   PRenderBatch = ^TRenderBatch;
   IRenderBatchArr = {$IfDef FPC}specialize{$EndIf} IArray<TRenderBatch>;
@@ -92,6 +96,14 @@ type
 //end of light types
 
 implementation
+
+{ TRenderBatch }
+
+procedure TRenderBatch.Clear;
+begin
+  SpineVerts := nil;
+  Particles := nil;
+end;
 
 { TShadowVertex }
 

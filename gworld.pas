@@ -11,7 +11,7 @@ uses
   Classes, SysUtils,
   gTypes,
   mutils,
-  avContnrs,
+  avContnrs, avContnrsDefaults,
   avRes,
   UPhysics2D, UPhysics2DTypes, B2Utils,
   intfUtils,
@@ -33,10 +33,12 @@ type
     FLayer : TGameLayer;
   protected
     FRes  : TGameResource;
+    function GetAngle: Single; virtual; abstract;
     function GetDir: TVec2; virtual; abstract;
     function GetPos: TVec2; virtual; abstract;
     function GetSize: TVec2; virtual; abstract;
 
+    procedure SetAngle(const Value: Single); virtual; abstract;
     procedure SetDir(const Value: TVec2); virtual; abstract;
     procedure SetPos(const Value: TVec2); virtual; abstract;
     procedure SetSize(const Value: TVec2); virtual; abstract;
@@ -51,12 +53,20 @@ type
     property Layer : TGameLayer read FLayer write FLayer;
     property ZIndex: Integer read FZIndex write FZIndex;
 
-    property Pos : TVec2 read GetPos  write SetPos;
-    property Dir : TVec2 read GetDir  write SetDir;
-    property Size: TVec2 read GetSize write SetSize;
+    property Pos  : TVec2  read GetPos   write SetPos;
+    property Angle: Single read GetAngle write SetAngle;
+    property Dir  : TVec2  read GetDir   write SetDir;
+    property Size : TVec2  read GetSize  write SetSize;
 
     procedure SetResource(const ARes: TGameResource);
+
+    function  HasSpineTris: Boolean; virtual;
     procedure Draw(const ASpineVertices: ISpineExVertices); virtual;
+    procedure DrawLightSources(const ALights: ILightInfoArr); virtual;
+    procedure DrawShadowCasters(const AShadowCasters: IShadowVertices); virtual;
+
+    function  HasParticles: Boolean; virtual;
+    procedure DrawParticles(const AParticlesArr: IParticleGroupArr); virtual;
 
     constructor Create(const AWorld: TWorld);
     destructor Destroy; override;
@@ -75,10 +85,12 @@ type
     FPos  : TVec2;
     FSize : TVec2;
 
+    function GetAngle: Single; override;
     function GetDir: TVec2; override;
     function GetPos: TVec2; override;
     function GetSize: TVec2; override;
 
+    procedure SetAngle(const Value: Single); override;
     procedure SetDir(const Value: TVec2); override;
     procedure SetPos(const Value: TVec2); override;
     procedure SetSize(const Value: TVec2); override;
@@ -89,10 +101,12 @@ type
   TGameBody = class(TGameObject)
   protected
     FSize: TVec2;
+    function GetAngle: Single; override;
     function GetDir: TVec2; override;
     function GetPos: TVec2; override;
     function GetSize: TVec2; override;
 
+    procedure SetAngle(const Value: Single); override;
     procedure SetDir(const Value: TVec2); override;
     procedure SetPos(const Value: TVec2); override;
     procedure SetSize(const Value: TVec2); override;
@@ -240,6 +254,15 @@ const
     (x: -1; y: 1)
   );
 
+type
+
+  { TDrawObjectZSort }
+
+  TDrawObjectZSort = class(TInterfacedObject, IComparer)
+  private
+    function Compare(const Left, Right): Integer;
+  end;
+
 procedure Draw_Sprite(const AVert: ISpineExVertices; const pos, dir, size: TVec2; const ASprite: ISpriteIndex; const Color: PVec4);
 var v : TSpineVertexEx;
     m: TMat3;
@@ -303,6 +326,17 @@ begin
   Draw_Rect(AVert, APattern, pts[0], pts[1], pts[2], pts[3], width, color);
 end;
 
+{ TDrawObjectZSort }
+
+function TDrawObjectZSort.Compare(const Left, Right): Integer;
+var L : TGameObject absolute Left;
+    R : TGameObject absolute Right;
+begin
+  Result := Ord(L.Layer) - Ord(R.Layer);
+  if Result <> 0 then Exit;
+  Result := L.ZIndex - R.ZIndex;
+end;
+
 { TGameDynamicBody }
 
 function TGameDynamicBody.CreateBodyDef(const APos: TVector2; const AAngle: Double): Tb2BodyDef;
@@ -334,6 +368,11 @@ end;
 
 { TGameBody }
 
+function TGameBody.GetAngle: Single;
+begin
+  Result := MainBody.GetAngle;
+end;
+
 function TGameBody.GetDir: TVec2;
 begin
   SinCos(MainBody.GetAngle, Result.y, Result.x);
@@ -350,6 +389,11 @@ end;
 function TGameBody.GetSize: TVec2;
 begin
   Result := FSize;
+end;
+
+procedure TGameBody.SetAngle(const Value: Single);
+begin
+  MainBody.SetTransform(MainBody.GetPosition, Value);
 end;
 
 procedure TGameBody.SetDir(const Value: TVec2);
@@ -469,6 +513,11 @@ end;
 
 { TGameSprite }
 
+function TGameSprite.GetAngle: Single;
+begin
+  Result := FAngle;
+end;
+
 function TGameSprite.GetDir: TVec2;
 begin
   Result := VecSinCos(FAngle);
@@ -482,6 +531,11 @@ end;
 function TGameSprite.GetSize: TVec2;
 begin
   Result := FSize;
+end;
+
+procedure TGameSprite.SetAngle(const Value: Single);
+begin
+  FAngle := Value;
 end;
 
 procedure TGameSprite.SetDir(const Value: TVec2);
@@ -644,8 +698,61 @@ begin
 end;
 
 procedure TWorld.GetAllDrawData(const ARenderBatches: IRenderBatchArr; const ALights: ILightInfoArr; const AShadowCasters: IShadowVertices);
-begin
+var gobj : TGameObject;
+    objList: IGameObjArr;
+    zSort : IComparer;
+    I: Integer;
 
+    newBatch: TRenderBatch;
+    newKind : TRenderBatchKind;
+begin
+  newBatch.kind := rbkUnknown;
+
+  objList := TGameObjArr.Create();
+
+  FObjects.Reset;
+  while FObjects.Next(gobj) do
+    objList.Add(gobj);
+
+  zSort := TDrawObjectZSort.Create;
+  objList.Sort(zSort);
+
+  for I := 0 to objList.Count-1 do
+  begin
+    gobj := objList[i];
+
+    if gobj.HasSpineTris then
+    begin
+      if gobj.Layer in [glGameBack, glGame, glGameFore] then
+        newKind := rbkSpineLighted
+      else
+        newKind := rbkSpine;
+      if newBatch.kind <> newKind then
+      begin
+        newBatch.Clear;
+        newBatch.kind := newKind;
+        newBatch.SpineVerts := TSpineExVertices.Create;
+        ARenderBatches.Add(newBatch);
+      end;
+      gobj.Draw(newBatch.SpineVerts);
+    end;
+
+    if gobj.HasParticles then
+    begin
+      if gobj.Layer in [glGameBack, glGame, glGameFore] then
+        newKind := rbkParticlesLighted
+      else
+        newKind := rbkParticles;
+      if newBatch.kind <> newKind then
+      begin
+        newBatch.Clear;
+        newBatch.kind := newKind;
+        newBatch.Particles := TParticleGroupArr.Create;
+        ARenderBatches.Add(newBatch);
+      end;
+      gobj.DrawParticles(newBatch.Particles);
+    end;
+  end;
 end;
 
 constructor TWorld.Create(const AAtlas: TavAtlasArrayReferenced);
@@ -691,6 +798,11 @@ begin
   DoSetResource(ARes);
 end;
 
+function TGameObject.HasSpineTris: Boolean;
+begin
+  Result := (FRes.tris <> nil) and (FRes.tris.Count > 0);
+end;
+
 procedure TGameObject.Draw(const ASpineVertices: ISpineExVertices);
 var
   v: TSpineVertexEx;
@@ -706,6 +818,26 @@ begin
     v.vsCoord.xy := v.vsCoord.xy * m;
     ASpineVertices.Add(v);
   end;
+end;
+
+procedure TGameObject.DrawLightSources(const ALights: ILightInfoArr);
+begin
+
+end;
+
+procedure TGameObject.DrawShadowCasters(const AShadowCasters: IShadowVertices);
+begin
+
+end;
+
+function TGameObject.HasParticles: Boolean;
+begin
+  Result := False;
+end;
+
+procedure TGameObject.DrawParticles(const AParticlesArr: IParticleGroupArr);
+begin
+
 end;
 
 constructor TGameObject.Create(const AWorld: TWorld);
