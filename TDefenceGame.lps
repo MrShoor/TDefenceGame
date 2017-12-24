@@ -10,7 +10,7 @@
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
         <CursorPos X="70" Y="10"/>
-        <UsageCount Value="43"/>
+        <UsageCount Value="48"/>
       </Unit0>
       <Unit1>
         <Filename Value="untmain.pas"/>
@@ -19,9 +19,10 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="untMain"/>
-        <TopLine Value="141"/>
-        <CursorPos X="35" Y="159"/>
-        <UsageCount Value="43"/>
+        <IsVisibleTab Value="True"/>
+        <TopLine Value="159"/>
+        <CursorPos X="42" Y="192"/>
+        <UsageCount Value="48"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
       </Unit1>
@@ -30,9 +31,9 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="gTypes"/>
         <EditorIndex Value="3"/>
-        <TopLine Value="80"/>
-        <CursorPos X="18" Y="87"/>
-        <UsageCount Value="42"/>
+        <TopLine Value="103"/>
+        <CursorPos X="49" Y="67"/>
+        <UsageCount Value="47"/>
         <Loaded Value="True"/>
       </Unit2>
       <Unit3>
@@ -40,9 +41,9 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="gWorld"/>
         <EditorIndex Value="1"/>
-        <TopLine Value="60"/>
+        <TopLine Value="142"/>
         <CursorPos X="30" Y="65"/>
-        <UsageCount Value="42"/>
+        <UsageCount Value="47"/>
         <Loaded Value="True"/>
       </Unit3>
       <Unit4>
@@ -52,15 +53,15 @@
         <WindowIndex Value="-1"/>
         <TopLine Value="-1"/>
         <CursorPos X="-1" Y="-1"/>
-        <UsageCount Value="42"/>
+        <UsageCount Value="47"/>
       </Unit4>
       <Unit5>
         <Filename Value="Physics2D\UPhysics2D.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="6"/>
-        <TopLine Value="10655"/>
-        <CursorPos X="29" Y="10669"/>
-        <UsageCount Value="42"/>
+        <TopLine Value="10640"/>
+        <CursorPos X="24" Y="10662"/>
+        <UsageCount Value="47"/>
         <Loaded Value="True"/>
       </Unit5>
       <Unit6>
@@ -70,7 +71,7 @@
         <WindowIndex Value="-1"/>
         <TopLine Value="-1"/>
         <CursorPos X="-1" Y="-1"/>
-        <UsageCount Value="42"/>
+        <UsageCount Value="47"/>
       </Unit6>
       <Unit7>
         <Filename Value="Physics2D\UPhysics2DHelper.pas"/>
@@ -79,7 +80,7 @@
         <WindowIndex Value="-1"/>
         <TopLine Value="-1"/>
         <CursorPos X="-1" Y="-1"/>
-        <UsageCount Value="42"/>
+        <UsageCount Value="47"/>
       </Unit7>
       <Unit8>
         <Filename Value="Physics2D\UPhysics2DPolygonTool.pas"/>
@@ -88,7 +89,7 @@
         <WindowIndex Value="-1"/>
         <TopLine Value="-1"/>
         <CursorPos X="-1" Y="-1"/>
-        <UsageCount Value="42"/>
+        <UsageCount Value="47"/>
       </Unit8>
       <Unit9>
         <Filename Value="Physics2D\UPhysics2DTypes.pas"/>
@@ -97,7 +98,7 @@
         <WindowIndex Value="-1"/>
         <TopLine Value="-1"/>
         <CursorPos X="-1" Y="-1"/>
-        <UsageCount Value="42"/>
+        <UsageCount Value="47"/>
       </Unit9>
       <Unit10>
         <Filename Value="B2Utils.pas"/>
@@ -105,7 +106,7 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="85"/>
         <CursorPos X="35" Y="101"/>
-        <UsageCount Value="42"/>
+        <UsageCount Value="47"/>
       </Unit10>
       <Unit11>
         <Filename Value="bass.pas"/>
@@ -114,7 +115,7 @@
         <WindowIndex Value="-1"/>
         <TopLine Value="-1"/>
         <CursorPos X="-1" Y="-1"/>
-        <UsageCount Value="42"/>
+        <UsageCount Value="47"/>
       </Unit11>
       <Unit12>
         <Filename Value="blight.pas"/>
@@ -123,16 +124,14 @@
         <WindowIndex Value="-1"/>
         <TopLine Value="-1"/>
         <CursorPos X="-1" Y="-1"/>
-        <UsageCount Value="42"/>
+        <UsageCount Value="47"/>
       </Unit12>
       <Unit13>
         <Filename Value="glevelloader.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="gLevelLoader"/>
         <EditorIndex Value="2"/>
-        <TopLine Value="426"/>
-        <CursorPos X="29" Y="447"/>
-        <UsageCount Value="40"/>
+        <UsageCount Value="45"/>
         <Loaded Value="True"/>
       </Unit13>
       <Unit14>
@@ -141,7 +140,7 @@
         <UnitName Value="gRegs"/>
         <EditorIndex Value="-1"/>
         <CursorPos X="37" Y="12"/>
-        <UsageCount Value="40"/>
+        <UsageCount Value="45"/>
       </Unit14>
       <Unit15>
         <Filename Value="glightrenderer.pas"/>
@@ -149,17 +148,15 @@
         <UnitName Value="gLightRenderer"/>
         <EditorIndex Value="-1"/>
         <CursorPos X="21" Y="11"/>
-        <UsageCount Value="35"/>
+        <UsageCount Value="40"/>
       </Unit15>
       <Unit16>
         <Filename Value="gunits.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="gUnits"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="4"/>
-        <TopLine Value="144"/>
-        <CursorPos X="56" Y="164"/>
-        <UsageCount Value="34"/>
+        <CursorPos X="34" Y="156"/>
+        <UsageCount Value="39"/>
         <Loaded Value="True"/>
       </Unit16>
       <Unit17>
@@ -174,7 +171,7 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="1629"/>
         <CursorPos X="34" Y="1655"/>
-        <UsageCount Value="10"/>
+        <UsageCount Value="9"/>
       </Unit18>
       <Unit19>
         <Filename Value="C:\lazarus\fpc\3.0.2\source\rtl\objpas\sysutils\syshelph.inc"/>
@@ -192,143 +189,132 @@
         <Filename Value="..\AvalancheProject\Spine\SpineIntf.pas"/>
         <EditorIndex Value="5"/>
         <TopLine Value="347"/>
-        <CursorPos X="29" Y="349"/>
-        <UsageCount Value="10"/>
+        <CursorPos X="65" Y="382"/>
+        <UsageCount Value="13"/>
         <Loaded Value="True"/>
       </Unit21>
     </Units>
     <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
         <Filename Value="gunits.pas"/>
-        <Caret Line="121" Column="3" TopLine="108"/>
+        <Caret Line="52" Column="15" TopLine="22"/>
       </Position1>
       <Position2>
-        <Filename Value="gworld.pas"/>
-        <Caret Line="848" Column="29" TopLine="838"/>
+        <Filename Value="gunits.pas"/>
+        <Caret Line="149" Column="34" TopLine="121"/>
       </Position2>
       <Position3>
         <Filename Value="gunits.pas"/>
-        <Caret Line="52" Column="15" TopLine="22"/>
+        <Caret Line="159" Column="6" TopLine="123"/>
       </Position3>
       <Position4>
         <Filename Value="gunits.pas"/>
-        <Caret Line="149" Column="34" TopLine="121"/>
+        <Caret Line="42" Column="15" TopLine="27"/>
       </Position4>
       <Position5>
         <Filename Value="gunits.pas"/>
-        <Caret Line="159" Column="6" TopLine="123"/>
+        <Caret Line="124" Column="3" TopLine="122"/>
       </Position5>
       <Position6>
         <Filename Value="gunits.pas"/>
-        <Caret Line="42" Column="15" TopLine="27"/>
+        <Caret Line="53" Column="15" TopLine="16"/>
       </Position6>
       <Position7>
-        <Filename Value="gunits.pas"/>
-        <Caret Line="124" Column="3" TopLine="122"/>
+        <Filename Value="gtypes.pas"/>
+        <Caret Line="102" Column="10" TopLine="80"/>
       </Position7>
       <Position8>
-        <Filename Value="gunits.pas"/>
-        <Caret Line="53" Column="15" TopLine="16"/>
+        <Filename Value="gtypes.pas"/>
+        <Caret Line="118" Column="21" TopLine="93"/>
       </Position8>
       <Position9>
         <Filename Value="gtypes.pas"/>
-        <Caret Line="102" Column="10" TopLine="80"/>
+        <Caret Line="139" Column="35" TopLine="115"/>
       </Position9>
       <Position10>
-        <Filename Value="gtypes.pas"/>
-        <Caret Line="118" Column="21" TopLine="93"/>
+        <Filename Value="gunits.pas"/>
+        <Caret Line="53" Column="17" TopLine="19"/>
       </Position10>
       <Position11>
-        <Filename Value="gtypes.pas"/>
-        <Caret Line="139" Column="35" TopLine="115"/>
+        <Filename Value="gunits.pas"/>
+        <Caret Line="160" Column="24" TopLine="130"/>
       </Position11>
       <Position12>
         <Filename Value="gunits.pas"/>
-        <Caret Line="53" Column="17" TopLine="19"/>
+        <Caret Line="161" Column="23" TopLine="130"/>
       </Position12>
       <Position13>
-        <Filename Value="gunits.pas"/>
-        <Caret Line="160" Column="24" TopLine="130"/>
+        <Filename Value="..\AvalancheProject\Spine\SpineIntf.pas"/>
+        <Caret Line="58" Column="14" TopLine="32"/>
       </Position13>
       <Position14>
-        <Filename Value="gunits.pas"/>
-        <Caret Line="161" Column="23" TopLine="130"/>
+        <Filename Value="..\AvalancheProject\Spine\SpineIntf.pas"/>
+        <Caret Line="54" Column="21" TopLine="28"/>
       </Position14>
       <Position15>
         <Filename Value="..\AvalancheProject\Spine\SpineIntf.pas"/>
-        <Caret Line="58" Column="14" TopLine="32"/>
+        <Caret Line="58" Column="49" TopLine="28"/>
       </Position15>
       <Position16>
         <Filename Value="..\AvalancheProject\Spine\SpineIntf.pas"/>
-        <Caret Line="54" Column="21" TopLine="28"/>
+        <Caret Line="140" Column="21" TopLine="96"/>
       </Position16>
       <Position17>
-        <Filename Value="..\AvalancheProject\Spine\SpineIntf.pas"/>
-        <Caret Line="58" Column="49" TopLine="28"/>
+        <Filename Value="gunits.pas"/>
+        <Caret Line="157" Column="12" TopLine="130"/>
       </Position17>
       <Position18>
-        <Filename Value="..\AvalancheProject\Spine\SpineIntf.pas"/>
-        <Caret Line="140" Column="21" TopLine="96"/>
+        <Filename Value="gunits.pas"/>
+        <Caret Line="64" Column="43" TopLine="22"/>
       </Position18>
       <Position19>
         <Filename Value="gunits.pas"/>
-        <Caret Line="157" Column="12" TopLine="130"/>
+        <Caret Line="183" TopLine="143"/>
       </Position19>
       <Position20>
         <Filename Value="gunits.pas"/>
-        <Caret Line="64" Column="43" TopLine="22"/>
+        <Caret Line="64" Column="15" TopLine="27"/>
       </Position20>
       <Position21>
         <Filename Value="gunits.pas"/>
-        <Caret Line="183" TopLine="143"/>
+        <Caret Line="162" TopLine="143"/>
       </Position21>
       <Position22>
         <Filename Value="gunits.pas"/>
-        <Caret Line="64" Column="15" TopLine="27"/>
+        <Caret Line="164" TopLine="143"/>
       </Position22>
       <Position23>
         <Filename Value="gunits.pas"/>
-        <Caret Line="162" TopLine="143"/>
+        <Caret Line="166" TopLine="143"/>
       </Position23>
       <Position24>
         <Filename Value="gunits.pas"/>
-        <Caret Line="164" TopLine="143"/>
+        <Caret Line="168" TopLine="143"/>
       </Position24>
       <Position25>
         <Filename Value="gunits.pas"/>
-        <Caret Line="166" TopLine="143"/>
+        <Caret Line="41" Column="23" TopLine="22"/>
       </Position25>
       <Position26>
         <Filename Value="gunits.pas"/>
-        <Caret Line="168" TopLine="143"/>
+        <Caret Line="104" Column="35" TopLine="78"/>
       </Position26>
       <Position27>
         <Filename Value="gunits.pas"/>
-        <Caret Line="41" Column="23" TopLine="22"/>
+        <Caret Line="53" Column="19" TopLine="43"/>
       </Position27>
       <Position28>
         <Filename Value="gunits.pas"/>
-        <Caret Line="104" Column="35" TopLine="78"/>
+        <Caret Line="167" Column="3" TopLine="144"/>
       </Position28>
       <Position29>
-        <Filename Value="gunits.pas"/>
-        <Caret Line="53" Column="19" TopLine="43"/>
+        <Filename Value="glevelloader.pas"/>
+        <Caret Line="447" Column="28" TopLine="426"/>
       </Position29>
       <Position30>
-        <Filename Value="gunits.pas"/>
-        <Caret Line="167" Column="3" TopLine="144"/>
+        <Filename Value="gtypes.pas"/>
+        <Caret Line="87" Column="34" TopLine="80"/>
       </Position30>
     </JumpHistory>
   </ProjectSession>
-  <Debugging>
-    <BreakPoints Count="1">
-      <Item1>
-        <Kind Value="bpkSource"/>
-        <WatchScope Value="wpsLocal"/>
-        <WatchKind Value="wpkWrite"/>
-        <Source Value="gunits.pas"/>
-        <Line Value="167"/>
-      </Item1>
-    </BreakPoints>
-  </Debugging>
 </CONFIG>

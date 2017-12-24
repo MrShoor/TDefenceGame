@@ -185,7 +185,7 @@ begin
   FGameInput := TGameInput.Create;
 
   FMain := TavMainRender.Create(nil);
-  FMain.Camera.Eye := Vec(0,0,-18);
+  FMain.Camera.Eye := Vec(0,0,-14);
 
   FFBOMain := Create_FrameBuffer(FMain, [TTextureFormat.RGBA], [True]);
   FFBO_HDR := Create_FrameBuffer(FMain, [TTextureFormat.RGBA16f], [True]);

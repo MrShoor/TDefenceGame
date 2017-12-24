@@ -208,7 +208,7 @@ begin
   if not FileExists(skel) then Exit;
   atlas := Dir + '\skeleton.atlas';
   if not FileExists(atlas) then Exit;
-  SpineSkel := Create_IspSkeleton(atlas, skel, AAtlas, 2.0/333);
+  SpineSkel := Create_IspSkeleton(atlas, skel, AAtlas, 3.0/333);
   SpineAnim := Create_IspAnimationState(SpineSkel, 0.1);
   SpineAnim.SetAnimationByName(0, 'idle', true);
 end;

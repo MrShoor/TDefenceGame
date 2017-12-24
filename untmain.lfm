@@ -8,6 +8,7 @@ object frmMain: TfrmMain
   OnDestroy = FormDestroy
   OnPaint = FormPaint
   LCLVersion = '1.8.0.3'
+  WindowState = wsMaximized
   object ApplicationProperties1: TApplicationProperties
     OnIdle = ApplicationProperties1Idle
     left = 112
