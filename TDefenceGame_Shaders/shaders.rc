@@ -1,0 +1,8 @@
+DX_ParticlesSimulate RCDATA "!Out\DX_ParticlesSimulate.hlsl"
+DX_ParticlesRender RCDATA "!Out\DX_ParticlesRender.hlsl"
+DX_base_spine RCDATA "!Out\DX_base_spine.hlsl"
+DX_DrawLightClusters RCDATA "!Out\DX_DrawLightClusters.hlsl"
+DX_Shadow RCDATA "!Out\DX_Shadow.hlsl"
+DX_build_lightmap RCDATA "!Out\DX_build_lightmap.hlsl"
+DX_Godrays RCDATA "!Out\DX_Godrays.hlsl"
+DX_ResolveHDR RCDATA "!Out\DX_ResolveHDR.hlsl"

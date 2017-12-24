@@ -20,7 +20,8 @@
             <Filename Value="Bin\TDefenceGame"/>
           </Target>
           <SearchPaths>
-            <IncludeFiles Value="$(ProjOutDir)"/>
+            <IncludeFiles Value="$(ProjOutDir);Physics2D"/>
+            <OtherUnitFiles Value="Physics2D"/>
             <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
           </SearchPaths>
           <Parsing>
@@ -60,7 +61,8 @@
             <Filename Value="Bin\TDefenceGame"/>
           </Target>
           <SearchPaths>
-            <IncludeFiles Value="$(ProjOutDir)"/>
+            <IncludeFiles Value="$(ProjOutDir);Physics2D"/>
+            <OtherUnitFiles Value="Physics2D"/>
             <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
           </SearchPaths>
           <CodeGeneration>
@@ -91,18 +93,21 @@
         <FormatVersion Value="1"/>
       </local>
     </RunParams>
-    <RequiredPackages Count="3">
+    <RequiredPackages Count="4">
       <Item1>
-        <PackageName Value="AvalancheUtils"/>
+        <PackageName Value="AvalancheSpine"/>
       </Item1>
       <Item2>
-        <PackageName Value="Avalanche"/>
+        <PackageName Value="AvalancheUtils"/>
       </Item2>
       <Item3>
-        <PackageName Value="LCL"/>
+        <PackageName Value="Avalanche"/>
       </Item3>
+      <Item4>
+        <PackageName Value="LCL"/>
+      </Item4>
     </RequiredPackages>
-    <Units Count="2">
+    <Units Count="16">
       <Unit0>
         <Filename Value="TDefenceGame.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -115,6 +120,67 @@
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="untMain"/>
       </Unit1>
+      <Unit2>
+        <Filename Value="gtypes.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="gTypes"/>
+      </Unit2>
+      <Unit3>
+        <Filename Value="gworld.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="gWorld"/>
+      </Unit3>
+      <Unit4>
+        <Filename Value="Physics2D\Physics2D.inc"/>
+        <IsPartOfProject Value="True"/>
+      </Unit4>
+      <Unit5>
+        <Filename Value="Physics2D\UPhysics2D.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit5>
+      <Unit6>
+        <Filename Value="Physics2D\UPhysics2DControllers.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit6>
+      <Unit7>
+        <Filename Value="Physics2D\UPhysics2DHelper.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit7>
+      <Unit8>
+        <Filename Value="Physics2D\UPhysics2DPolygonTool.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit8>
+      <Unit9>
+        <Filename Value="Physics2D\UPhysics2DTypes.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit9>
+      <Unit10>
+        <Filename Value="B2Utils.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit10>
+      <Unit11>
+        <Filename Value="bass.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit11>
+      <Unit12>
+        <Filename Value="blight.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit12>
+      <Unit13>
+        <Filename Value="glevelloader.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="gLevelLoader"/>
+      </Unit13>
+      <Unit14>
+        <Filename Value="gregs.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="gRegs"/>
+      </Unit14>
+      <Unit15>
+        <Filename Value="glightrenderer.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="gLightRenderer"/>
+      </Unit15>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -124,7 +190,8 @@
       <Filename Value="Bin\TDefenceGame"/>
     </Target>
     <SearchPaths>
-      <IncludeFiles Value="$(ProjOutDir)"/>
+      <IncludeFiles Value="$(ProjOutDir);Physics2D"/>
+      <OtherUnitFiles Value="Physics2D"/>
       <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <Linking>

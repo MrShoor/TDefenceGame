@@ -13,4 +13,9 @@ object frmMain: TfrmMain
     left = 112
     top = 40
   end
+  object FPSTimer: TTimer
+    OnTimer = FPSTimerTimer
+    left = 224
+    top = 40
+  end
 end

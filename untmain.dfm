@@ -21,4 +21,8 @@ object frmMain: TfrmMain
     Left = 112
     Top = 40
   end
+  object FPSTimer: TTimer
+    Left = 232
+    Top = 40
+  end
 end

@@ -1,0 +1,68 @@
+{
+    "fxc_params"  : "/nologo /O3 /Zi /Gec",
+    "HLSLcc_lang" : 330,
+    "HLSLcc_flags": ["HLSLCC_FLAG_DISABLE_GLOBALS_STRUCT",
+                     "HLSLCC_FLAG_INOUT_SEMANTIC_NAMES",
+                     "HLSLCC_FLAG_DISABLE_EXPLICIT_LOCATIONS"],
+    "OGLTranslate" : false,
+    "OutDir" : "!Out",
+    "VertexEntry" : "VS",
+    "GeometryEntry" : "GS",
+    "FragmentEntry" : "PS",
+    "ComputeEntry"  : "CS",
+    "VertexTarget" : "vs_5_0",
+    "GeometryTarget" : "gs_5_0",
+    "FragmentTarget" : "ps_5_0",
+    "ComputeTarget"  : "cs_5_0",
+    
+    "Programs":[
+        {
+        "Name"     : "ParticlesSimulate",
+        "Compute"  : "simulate.cpp",
+        "Path"     :["particles"]
+        },
+        {
+        "Name"     : "ParticlesRender",
+        "Vertex"   : "render.cpp",
+        "Fragment" : "render.cpp",
+        "Path"     :["particles"]            
+        },
+        {
+        "Name"     : "base_spine",
+        "Vertex"   : "spine.cpp",
+        "Fragment" : "spine.cpp",
+        "Path"     :["base texturing"]
+        },
+        {
+        "Name"     : "DrawLightClusters",
+        "Vertex"   : "draw_clusters.cpp",
+        "Fragment" : "draw_clusters.cpp",
+        "Path"     :["light"]
+        },
+        {
+        "Name"     : "Shadow",
+        "Vertex"   : "Shadow.cpp",
+        "Geometry" : "Shadow.cpp",
+        "Fragment" : "Shadow.cpp",
+        "Path"     :["light"]
+        },
+        {
+        "Name"     : "build_lightmap",
+        "Vertex"   : "build_lightmap.cpp",
+        "Fragment" : "build_lightmap.cpp",
+        "Path"     :["light"]
+        },
+        {
+        "Name"     : "Godrays",
+        "Vertex"   : "godrays.cpp",
+        "Fragment" : "godrays.cpp",
+        "Path"     :["light"]
+        },
+        {
+        "Name"     : "ResolveHDR",
+        "Vertex"   : "resolve_hdr.cpp",
+        "Fragment" : "resolve_hdr.cpp",
+        "Path"     :["post_process"]
+        }
+    ]
+}

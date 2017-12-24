@@ -128,6 +128,18 @@
             <Form>frmMain</Form>
             <FormType>dfm</FormType>
         </DCCReference>
+        <DCCReference Include="B2Utils.pas"/>
+        <DCCReference Include="bass.pas"/>
+        <DCCReference Include="blight.pas"/>
+        <DCCReference Include="glevelloader.pas"/>
+        <DCCReference Include="gregs.pas"/>
+        <DCCReference Include="gtypes.pas"/>
+        <DCCReference Include="gworld.pas"/>
+        <DCCReference Include="Physics2D\UPhysics2D.pas"/>
+        <DCCReference Include="Physics2D\UPhysics2DControllers.pas"/>
+        <DCCReference Include="Physics2D\UPhysics2DHelper.pas"/>
+        <DCCReference Include="Physics2D\UPhysics2DPolygonTool.pas"/>
+        <DCCReference Include="Physics2D\UPhysics2DTypes.pas"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>
@@ -154,8 +166,20 @@
                 </Excluded_Packages>
             </Delphi.Personality>
             <Deployment Version="2">
+                <DeployFile LocalName="Bin\TDefenceGame.rsm" Configuration="Debug" Class="DebugSymbols">
+                    <Platform Name="Win64">
+                        <RemoteName>TDefenceGame.rsm</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="Win32\Debug\TDefenceGame.exe" Configuration="Debug" Class="ProjectOutput">
                     <Platform Name="Win32">
+                        <RemoteName>TDefenceGame.exe</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="Bin\TDefenceGame.exe" Configuration="Debug" Class="ProjectOutput">
+                    <Platform Name="Win64">
                         <RemoteName>TDefenceGame.exe</RemoteName>
                         <Overwrite>true</Overwrite>
                     </Platform>
