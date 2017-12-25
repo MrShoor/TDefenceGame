@@ -24,6 +24,9 @@ type
   protected
     FMoveTarget: TVec2;
 
+    function PredictTargetForShooting(const AUnit: TUnit): TVec2; virtual; abstract;
+    function AllowShootNow(AUnit: TUnit): Boolean; virtual;
+
     property  Player: TUnit read GetPlayer write SetPlayer;
     procedure UpdateStep; override;
     function  GetDefaultSkin: string; override;
@@ -36,27 +39,52 @@ type
   TStupidBot = class(TBotTank)
   private
   protected
+    function PredictTargetForShooting(const AUnit: TUnit): TVec2; override;
+
     function GetMaxMoveSpeed: TVec2; override;
     function GetReloadDuration: Integer; override;
     procedure DoFire(); override;
   public
     procedure AfterConstruction; override;
+    destructor Destroy; override;
+  end;
+
+  TPowerBot = class(TStupidBot)
+
   end;
 
   TTeslaBot = class(TBotTank)
   private
   protected
+    function PredictTargetForShooting(const AUnit: TUnit): TVec2; override;
+    function AllowShootNow(AUnit: TUnit): Boolean; override;
+
     function GetMaxMoveSpeed: TVec2; override;
     function GetReloadDuration: Integer; override;
     procedure DoFire(); override;
   public
     procedure AfterConstruction; override;
+    destructor Destroy; override;
+  end;
+
+  TMiniBot = class(TBotTank)
+  private
+  protected
+    function PredictTargetForShooting(const AUnit: TUnit): TVec2; override;
+    function AllowShootNow(AUnit: TUnit): Boolean; override;
+
+    function GetMaxMoveSpeed: TVec2; override;
+    function GetReloadDuration: Integer; override;
+    procedure DoFire(); override;
+  public
+    procedure AfterConstruction; override;
+    destructor Destroy; override;
   end;
 
 implementation
 
 uses
-  Math, gRegs;
+  Math, gRegs, gPickableItems;
 
 { TBotTank }
 
@@ -64,6 +92,11 @@ procedure TBotTank.AfterConstruction;
 begin
   inherited;
   Player := TUnit(World.FindPlayerObject);
+end;
+
+function TBotTank.AllowShootNow(AUnit: TUnit): Boolean;
+begin
+  Result := True;
 end;
 
 procedure TBotTank.Draw(const ASpineVertices: ISpineExVertices);
@@ -159,9 +192,7 @@ var newPlayer: TUnit;
     seeTarget: Boolean;
     canMove : Boolean;
     dummy: TVec2;
-    n: TVec2;
     hpk: Single;
-    k: Single;
     aimTarget: TVec2;
     aimHit: TGameBody;
 begin
@@ -207,11 +238,10 @@ begin
 
   if seeTarget then
   begin
-    k := Len(newPlayer.Pos - Pos)/50;
-    aimTarget := newPlayer.Pos + (newPlayer.Velocity - Velocity) * k;
+    aimTarget := PredictTargetForShooting(newPlayer);
     TowerTargetAt(aimTarget);
     aimHit := World.RayCast(Pos, aimTarget, dummy, {$IfDef FPC}@{$EndIf}Filter_ForShooting);
-    if (aimHit = nil) or (aimHit = newPlayer) then
+    if ((aimHit = nil) or (aimHit = newPlayer)) and AllowShootNow(newPlayer) then
       Fire();
   end
   else
@@ -227,10 +257,25 @@ begin
   HP := MaxHP;
 end;
 
+destructor TStupidBot.Destroy;
+var item: TPickItem;
+begin
+  if not World.InDestroy then
+  begin
+    case Random(3) of
+      0: item := TPickItem_Canon_RocketMini.Create(World);
+    else
+      item := nil;
+    end;
+    if item <> nil then item.Pos := Pos;
+  end;
+  inherited;
+end;
+
 procedure TStupidBot.DoFire;
 begin
   inherited;
-  ShootWithRocket();
+  ShootWithRocket(False);
 end;
 
 function TStupidBot.GetMaxMoveSpeed: TVec2;
@@ -240,7 +285,14 @@ end;
 
 function TStupidBot.GetReloadDuration: Integer;
 begin
-  Result := 1000;
+  Result := 1300;
+end;
+
+function TStupidBot.PredictTargetForShooting(const AUnit: TUnit): TVec2;
+var k: Single;
+begin
+  k := Len(AUnit.Pos - Pos)/50;
+  Result := AUnit.Pos + (AUnit.Velocity - Velocity) * k;
 end;
 
 { TTeslaBot }
@@ -250,6 +302,26 @@ begin
   inherited;
   MaxHP := 40;
   HP := MaxHP;
+end;
+
+function TTeslaBot.AllowShootNow(AUnit: TUnit): Boolean;
+begin
+  Result := LenSqr(AUnit.Pos - Pos) < Sqr(TTeslaRay.TESLA_RANGE + TTeslaRay.TESLA_SNAP_RANGE);
+end;
+
+destructor TTeslaBot.Destroy;
+var item: TPickItem;
+begin
+  if not World.InDestroy then
+  begin
+    case Random(3) of
+      0: item := TPickItem_Canon_RocketMini.Create(World);
+    else
+      item := nil;
+    end;
+    if item <> nil then item.Pos := Pos;
+  end;
+  inherited;
 end;
 
 procedure TTeslaBot.DoFire;
@@ -265,10 +337,70 @@ end;
 
 function TTeslaBot.GetReloadDuration: Integer;
 begin
-  Result := 0;
+  Result := 100;
+end;
+
+function TTeslaBot.PredictTargetForShooting(const AUnit: TUnit): TVec2;
+begin
+  Result := AUnit.Pos;
+end;
+
+{ TMiniBot }
+
+procedure TMiniBot.AfterConstruction;
+begin
+  inherited;
+  MaxHP := 50;
+  HP := MaxHP;
+end;
+
+function TMiniBot.AllowShootNow(AUnit: TUnit): Boolean;
+begin
+  Result := LenSqr(AUnit.Pos - Pos) < Sqr(15);
+end;
+
+destructor TMiniBot.Destroy;
+var item: TPickItem;
+begin
+  if not World.InDestroy then
+  begin
+    case Random(1) of
+      0: item := TPickItem_Canon_RocketMini.Create(World);
+    else
+      item := nil;
+    end;
+    if item <> nil then item.Pos := Pos;
+  end;
+  inherited;
+end;
+
+procedure TMiniBot.DoFire;
+begin
+  inherited;
+  ShootWithGrenade();
+end;
+
+function TMiniBot.GetMaxMoveSpeed: TVec2;
+begin
+  Result := Vec(100,100);
+end;
+
+function TMiniBot.GetReloadDuration: Integer;
+begin
+  Result := 800;
+end;
+
+function TMiniBot.PredictTargetForShooting(const AUnit: TUnit): TVec2;
+var k: Single;
+begin
+  k := Len(AUnit.Pos - Pos)/50;
+  Result := AUnit.Pos + (AUnit.Velocity - Velocity) * k;
 end;
 
 initialization
+RegClass(TPowerBot);
 RegClass(TStupidBot);
+RegClass(TTeslaBot);
+RegClass(TMiniBot);
 
 end.

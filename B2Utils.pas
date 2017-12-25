@@ -373,8 +373,7 @@ begin
     Result := E_NOINTERFACE;
 end;
 
-function TContactListener.RayCastCallback(const input: Tb2RayCastInput;
-  proxyId: Int32): PhysicsFloat;
+function TContactListener.RayCastCallback(const input: Tb2RayCastInput; proxyId: Int32): PhysicsFloat;
 begin
 
 end;

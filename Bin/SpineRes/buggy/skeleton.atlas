@@ -1,0 +1,83 @@
+
+skeleton.png
+size: 680,147
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+base
+  rotate: true
+  xy: 4, 4
+  size: 139, 122
+  orig: 139, 122
+  offset: 0, 0
+  index: -1
+canon_grenades
+  rotate: true
+  xy: 373, 34
+  size: 109, 60
+  orig: 109, 60
+  offset: 0, 0
+  index: -1
+canon_rocket
+  rotate: false
+  xy: 437, 51
+  size: 169, 92
+  orig: 169, 92
+  offset: 0, 0
+  index: -1
+canon_rocket_mini
+  rotate: true
+  xy: 130, 6
+  size: 137, 56
+  orig: 137, 56
+  offset: 0, 0
+  index: -1
+canon_tesla
+  rotate: false
+  xy: 253, 26
+  size: 116, 117
+  orig: 116, 117
+  offset: 0, 0
+  index: -1
+out
+  rotate: false
+  xy: 373, 11
+  size: 37, 19
+  orig: 37, 19
+  offset: 0, 0
+  index: -1
+tower
+  rotate: true
+  xy: 190, 9
+  size: 134, 59
+  orig: 134, 59
+  offset: 0, 0
+  index: -1
+wheel_00
+  rotate: false
+  xy: 437, 6
+  size: 77, 41
+  orig: 77, 41
+  offset: 0, 0
+  index: -1
+wheel_01
+  rotate: false
+  xy: 518, 6
+  size: 77, 41
+  orig: 77, 41
+  offset: 0, 0
+  index: -1
+wheel_10
+  rotate: false
+  xy: 599, 6
+  size: 77, 41
+  orig: 77, 41
+  offset: 0, 0
+  index: -1
+wheel_11
+  rotate: true
+  xy: 610, 66
+  size: 77, 41
+  orig: 77, 41
+  offset: 0, 0
+  index: -1

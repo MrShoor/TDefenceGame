@@ -48,6 +48,8 @@ type
     function Shoot: Boolean;
     function Special: Boolean;
 
+    function SetWeapon(out ANewWeapon: TPlayerWeapon): Boolean;
+
     function RestartLevel: Boolean;
   end;
 
@@ -271,6 +273,7 @@ procedure TfrmMain.ProcessInput;
 var rot, acc: Single;
     tank: TTowerTank;
     intpt: TVec3;
+    newWeapon: TPlayerWeapon;
 begin
   if GetForegroundWindow <> Handle then Exit;
 
@@ -286,6 +289,9 @@ begin
   if FGameInput.Down  then acc := acc - 1;
   tank.RotateBy(rot);
   tank.Move(acc);
+
+  if FGameInput.SetWeapon(newWeapon) then
+    TPlayer(tank).SetWeapon(newWeapon);
 
   if Intersect(Plane(0,0,1,0), FMain.Cursor.Ray, intpt) then
     tank.TowerTargetAt(intpt.xy);
@@ -427,6 +433,36 @@ end;
 function TGameInput.Right: Boolean;
 begin
   Result := GetKeyState(Ord('D')) < 0;
+end;
+
+function TGameInput.SetWeapon(out ANewWeapon: TPlayerWeapon): Boolean;
+begin
+  Result := False;
+  if GetKeyState(Ord('1')) < 0 then
+  begin
+    ANewWeapon := pwMachineGun;
+    Result := True;
+  end;
+  if GetKeyState(Ord('2')) < 0 then
+  begin
+    ANewWeapon := pwMiniRocket;
+    Result := True;
+  end;
+  if GetKeyState(Ord('3')) < 0 then
+  begin
+    ANewWeapon := pwRocket;
+    Result := True;
+  end;
+  if GetKeyState(Ord('4')) < 0 then
+  begin
+    ANewWeapon := pwTesla;
+    Result := True;
+  end;
+  if GetKeyState(Ord('5')) < 0 then
+  begin
+    ANewWeapon := pwGrenade;
+    Result := True;
+  end;
 end;
 
 function TGameInput.Shoot: Boolean;

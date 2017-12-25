@@ -30,13 +30,15 @@ type
     procedure UpdateStep; override;
     function  GetLiveTime: Integer; virtual; abstract;
   public
-    procedure SetDefaultState(const AStartPos, AEndPos: TVec2; const ADir: TVec2; const AStartVel: TVec2);
+    procedure SetDefaultState(AStartPos, AEndPos: TVec2; ADir: TVec2; AStartVel: TVec2); virtual;
 
     property  Owner : TOwnerInfo read FOwner write FOwner;
     procedure AfterConstruction; override;
   end;
 
   TRocket = class (TBullet)
+  private
+    FExtraPower: Boolean;
   protected
     function Filter_UnitsOnly(const AObj: TGameBody): Boolean;
 
@@ -46,6 +48,7 @@ type
   protected
     procedure OnHit(const AFixture: Tb2Fixture; const ThisFixture: Tb2Fixture; const AManifold: Tb2WorldManifold); override;
   public
+    property  ExtraPower: Boolean read FExtraPower write FExtraPower;
     procedure DrawLightSources(const ALights: ILightInfoArr); override;
 
     procedure AfterConstruction; override;
@@ -62,12 +65,16 @@ type
   protected
     procedure OnHit(const AFixture: Tb2Fixture; const ThisFixture: Tb2Fixture; const AManifold: Tb2WorldManifold); override;
   public
+    procedure SetDefaultState(AStartPos, AEndPos: TVec2; ADir: TVec2; AStartVel: TVec2); override;
     procedure DrawLightSources(const ALights: ILightInfoArr); override;
 
     procedure AfterConstruction; override;
   end;
 
   TTeslaRay = class (TGameSprite)
+  public const
+    TESLA_RANGE = 8;
+    TESLA_SNAP_RANGE = 4;
   private type
     IRayPoints = {$IfDef FPC}specialize{$EndIf} IArray<TVec2>;
     TRayPoints = {$IfDef FPC}specialize{$EndIf} TArray<TVec2>;
@@ -95,10 +102,24 @@ type
     procedure DrawLightSources(const ALights: ILightInfoArr); override;
   end;
 
+  TGrenade = class (TBullet)
+  protected
+    function Filter_UnitsOnly(const AObj: TGameBody): Boolean;
+  protected
+    procedure UpdateStep; override;
+    function  CreateFixutreDefForShape(const AShape: Tb2Shape): Tb2FixtureDef; override;
+    function  GetLiveTime: Integer; override;
+    function  CreateBodyDef(const APos: TVector2; const AAngle: Double): Tb2BodyDef; override;
+  public
+    procedure SetDefaultState(AStartPos, AEndPos: TVec2; ADir: TVec2; AStartVel: TVec2); override;
+
+    procedure AfterConstruction; override;
+  end;
+
 implementation
 
 uses
-  gEffects, gUnits;
+  Math, gEffects, gUnits;
 
 { TBullet }
 
@@ -156,8 +177,8 @@ begin
 end;
 
 procedure TRocket.OnHit(const AFixture, ThisFixture: Tb2Fixture; const AManifold: Tb2WorldManifold);
-const ROCKET_MAX_DMG = 30;
-      ROCKET_MAX_RAD = 7;
+const ROCKET_MAX_DMG: array [Boolean] of Integer = (30, 50);
+      ROCKET_MAX_RAD: array [Boolean] of Integer = (7, 11);
 var hittedBody: TGameBody;
     objs: IGameObjArr;
     unt: TUnit;
@@ -167,24 +188,27 @@ var hittedBody: TGameBody;
     k: Single;
 
     explosion: TExplosion;
+
 begin
   inherited;
-  objs := QueryObjects(ROCKET_MAX_RAD, {$IfDef FPC}@{$EndIf}Filter_UnitsOnly);
+  if AFixture.IsSensor then Exit;
+
+  objs := QueryObjects(ROCKET_MAX_RAD[FExtraPower], {$IfDef FPC}@{$EndIf}Filter_UnitsOnly);
   hittedBody := TGameBody(AFixture.GetBody.UserData);
   for i := 0 to objs.Count - 1 do
   begin
     unt := objs[i] as TUnit;
     if unt = hittedBody then
     begin
-      dmgPower := ROCKET_MAX_DMG;
+      dmgPower := ROCKET_MAX_DMG[FExtraPower];
       dmgDir := unt.Pos - Pos + Dir;
     end
     else
     begin
       dmgDir := unt.Pos - Pos;
-      k := 1 - clamp(Len(dmgDir)/ROCKET_MAX_RAD, 0, 1);
+      k := 1 - clamp(Len(dmgDir)/ROCKET_MAX_RAD[FExtraPower], 0, 1);
       k := k * k;
-      dmgPower := ROCKET_MAX_DMG * k;
+      dmgPower := ROCKET_MAX_DMG[FExtraPower] * k;
     end;
     unt.DealDamage(dmgPower, normalize(dmgDir), dmgPower*100, Owner);
   end;
@@ -206,7 +230,7 @@ begin
   MainBody.ApplyForceToCenter(TVector2.From(v.x, v.y));
 end;
 
-procedure TBullet.SetDefaultState(const AStartPos, AEndPos, ADir, AStartVel: TVec2);
+procedure TBullet.SetDefaultState(AStartPos, AEndPos, ADir, AStartVel: TVec2);
 begin
   Pos := AStartPos;
   if LenSqr(ADir) = 0 then
@@ -287,14 +311,14 @@ var ls: TLightInfo;
     m : TMat3;
 begin
   inherited;
-//  m := GetTransform();
-//
-//  k := 0.1;
-//  ls.LightKind := 0;
-//  ls.LightPos := Vec(-0.2, 0)*m;
-//  ls.LightDist := 1.0;
-//  ls.LightColor := Vec(0.988235294117647, 0.792156862745098, 0.0117647058823529, 1.0)*k;
-//  ALights.Add(ls);
+  m := GetTransform();
+
+  k := 0.1;
+  ls.LightKind := 0;
+  ls.LightPos := Vec(-0.2, 0)*m;
+  ls.LightDist := 1.0;
+  ls.LightColor := Vec(0.988235294117647, 0.792156862745098, 0.0117647058823529, 1.0)*k;
+  ALights.Add(ls);
 end;
 
 function TSimpleGun.GetLiveTime: Integer;
@@ -303,20 +327,36 @@ begin
 end;
 
 procedure TSimpleGun.OnHit(const AFixture, ThisFixture: Tb2Fixture; const AManifold: Tb2WorldManifold);
-const BULLET_MAX_DMG = 7;
+const BULLET_MAX_DMG = 5;
 var
   hittedBody: TGameBody;
   unt: TUnit;
   hitpower: Single;
 begin
   inherited;
+  if AFixture.IsSensor then Exit;
+
   hittedBody := TGameBody(AFixture.GetBody.UserData);
   if hittedBody is TUnit then
   begin
     unt := hittedBody as TUnit;
-    hitpower := Len(Velocity)/80;
+    hitpower := Len(Velocity)/80 * BULLET_MAX_DMG;
+    hitpower := min(hitpower, BULLET_MAX_DMG);
     unt.DealDamage(hitpower, unt.Pos - Pos, 0, Owner);
   end;
+end;
+
+procedure TSimpleGun.SetDefaultState(AStartPos, AEndPos: TVec2; ADir, AStartVel: TVec2);
+var shootDir: TVec2;
+    fi: Single;
+begin
+  fi := (Random()-0.5)*0.07;
+  shootDir := AEndPos - AStartPos;
+  shootDir := Rotate(shootDir, fi);
+  AEndPos := AStartPos + shootDir;
+  ADir := Rotate(ADir, fi);
+  AStartVel := Rotate(AStartVel, fi);
+  inherited;
 end;
 
 procedure TSimpleGun.UpdateStep;
@@ -366,6 +406,7 @@ end;
 function TTeslaRay.Filter_ExcludeOwner(const AObj: TGameBody): Boolean;
 begin
   if not (AObj is TUnit) then Exit(False);
+  if AObj is TBox then Exit(False);
   if FOwner.obj <> nil then
     if FOwner.obj.Obj = AObj then Exit(False);
   Result := True;
@@ -382,8 +423,6 @@ begin
 end;
 
 procedure TTeslaRay.SetDefaultState(AStartPos, AEndPos: TVec2);
-
-const TESLA_RANGE = 8;
 
   procedure GenerateRay(const Pt1, Pt2, Vel: TVec2);
   var midPt: TVec2;
@@ -420,7 +459,7 @@ begin
   end;
 
   obj := nil;
-  minDist := 4;
+  minDist := TESLA_SNAP_RANGE;
   objs := World.QueryObjects(AEndPos, minDist, {$IfDef FPC}@{$EndIf}Filter_ExcludeOwner);
   for I := 0 to objs.Count-1 do
   begin
@@ -468,6 +507,107 @@ begin
   begin
     kk := 1.0 - abs(i/n - 0.5)*2.0;
     FRayPoints[i] := FRayPoints[i] + FRayPointsVel[i] * (PHYS_STEP/1000*(kk*Random*2));
+  end;
+end;
+
+{ TGrenade }
+
+procedure TGrenade.AfterConstruction;
+var
+  res: TGameResource;
+  size: TVec2;
+begin
+  inherited;
+  res.Clear;
+  SetLength(res.images, 1);
+  res.images[0] := World.GetCommonTextures.Grenade;
+  size := Vec(res.images[0].Data.Width, res.images[0].Data.Height) / 80;
+  res.tris := TSpineExVertices.Create;
+  Draw_Sprite(res.tris, Vec(0,0), Vec(1,0), size, res.images[0]);
+  //Draw_Sprite(res.tris, Vec(0,0), Vec(1,0), size, res.images[0]);
+  SetLength(res.fixtures_cir, 1);
+  res.fixtures_cir[0] := Vec(0,0,size.y*0.5);
+  SetResource(res);
+end;
+
+function TGrenade.CreateBodyDef(const APos: TVector2; const AAngle: Double): Tb2BodyDef;
+begin
+  Result := Tb2BodyDef.Create;
+  Result.bodyType := b2_dynamicBody;
+  Result.userData := Self;
+  Result.position := APos;
+  Result.angle := AAngle;
+  Result.linearDamping := 3.5;
+  Result.angularDamping := 3.5;
+  Result.allowSleep := True;
+end;
+
+function TGrenade.CreateFixutreDefForShape(const AShape: Tb2Shape): Tb2FixtureDef;
+begin
+  Result := inherited CreateFixutreDefForShape(AShape);
+  Result.restitution := 0.6;
+  Result.density := 13.0;
+end;
+
+function TGrenade.Filter_UnitsOnly(const AObj: TGameBody): Boolean;
+begin
+  Result := AObj is TGameDynamicBody;
+end;
+
+function TGrenade.GetLiveTime: Integer;
+begin
+  Result := 2000;
+end;
+
+procedure TGrenade.SetDefaultState(AStartPos, AEndPos, ADir, AStartVel: TVec2);
+begin
+  inherited;
+  MainBody.SetAngularVelocity(Random()*10);
+end;
+
+procedure TGrenade.UpdateStep;
+const GRENADE_MAX_DMG = 60;
+      GRENADE_MAX_RAD = 7;
+var objs: IGameObjArr;
+    body: TGameDynamicBody;
+    i: Integer;
+    dmgPower: Single;
+    dmgDir  : TVec2;
+    k: Single;
+
+    explosion: TExplosion;
+begin
+  inherited;
+  if FDeadTime < World.Time then
+  begin
+    objs := QueryObjects(GRENADE_MAX_RAD, {$IfDef FPC}@{$EndIf}Filter_UnitsOnly);
+    for i := 0 to objs.Count - 1 do
+    begin
+      body := objs[i] as TGameDynamicBody;
+
+      dmgDir := body.Pos - Pos;
+      if LenSqr(dmgDir) = 0 then Continue;
+
+      k := 1 - clamp(Len(dmgDir)/GRENADE_MAX_RAD, 0, 1);
+      k := k * k;
+      dmgPower := GRENADE_MAX_DMG * k;
+
+      if body is TUnit then
+      begin
+        TUnit(body).DealDamage(dmgPower, normalize(dmgDir), dmgPower*100, Owner);
+      end
+      else
+      begin
+        dmgDir := normalize(dmgDir)*dmgPower*100;
+        body.MainBody.ApplyForceToCenter(TVector2.From(dmgDir.x, dmgDir.y));
+      end;
+    end;
+
+    explosion := TExplosion.Create(World);
+    explosion.Layer := glGameFore;
+    explosion.ZIndex := 0;
+    explosion.Pos := Pos - Dir*0.25;
+    explosion.Angle := Random * 2 * Pi;
   end;
 end;
 

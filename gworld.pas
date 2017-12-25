@@ -19,7 +19,7 @@ uses
 
 const
   cNO_BOX2DEBUG = False;
-  PHYS_STEP = 8;
+  PHYS_STEP = 4;
 
 type
   TWorld = class;
@@ -184,6 +184,16 @@ type
   TWorldCommonTextures = packed record
     WhitePix   : ISpriteIndex;
     BulletTrace: ISpriteIndex;
+    Grenade    : ISpriteIndex;
+
+    hp       : ISpriteIndex;
+    speed    : ISpriteIndex;
+    firerate : ISpriteIndex;
+
+    canon_rocket_mini : ISpriteIndex;
+    canon_rocket   : ISpriteIndex;
+    canon_tesla    : ISpriteIndex;
+    canon_grenades : ISpriteIndex;
     procedure Load(const AAtlas: TavAtlasArrayReferenced);
   end;
   PWorldCommonTextures = ^TWorldCommonTextures;
@@ -243,7 +253,11 @@ type
 
     FAtlas: TavAtlasArrayReferenced;
     FCommonTextures: TWorldCommonTextures;
+
+    FInDestroy: Boolean;
   public
+    property InDestroy: Boolean read FInDestroy;
+
     function Time: Int64;
     function FindPlayerObject: TGameObject;
     function GetCommonTextures: PWorldCommonTextures;
@@ -750,6 +764,16 @@ procedure TWorldCommonTextures.Load(const AAtlas: TavAtlasArrayReferenced);
 begin
   WhitePix := AAtlas.ObtainSprite(Default_ITextureManager.LoadTexture('HG\whitepix.png').MipData(0,0));
   BulletTrace := AAtlas.ObtainSprite(Default_ITextureManager.LoadTexture('HG\guntrace.png').MipData(0,0));
+  Grenade := AAtlas.ObtainSprite(Default_ITextureManager.LoadTexture('HG\grenade.png').MipData(0,0));
+
+  hp := AAtlas.ObtainSprite(Default_ITextureManager.LoadTexture('HG\hp.png').MipData(0,0));
+  speed := AAtlas.ObtainSprite(Default_ITextureManager.LoadTexture('HG\speed.png').MipData(0,0));
+  firerate := AAtlas.ObtainSprite(Default_ITextureManager.LoadTexture('HG\firerate.png').MipData(0,0));
+
+  canon_rocket_mini := AAtlas.ObtainSprite(Default_ITextureManager.LoadTexture('HG\canon_rocket_mini.png').MipData(0,0));
+  canon_rocket := AAtlas.ObtainSprite(Default_ITextureManager.LoadTexture('HG\canon_rocket.png').MipData(0,0));
+  canon_tesla := AAtlas.ObtainSprite(Default_ITextureManager.LoadTexture('HG\canon_tesla.png').MipData(0,0));
+  canon_grenades := AAtlas.ObtainSprite(Default_ITextureManager.LoadTexture('HG\canon_grenades.png').MipData(0,0));
 end;
 
 { TWorld.TRaycastCallback }
@@ -1016,6 +1040,7 @@ destructor TWorld.Destroy;
 var obj: TGameObject;
     i: Integer;
 begin
+  FInDestroy := True;
   FSndPlayer := nil;
 
   FreeAndNil(FRayCaster);
@@ -1087,7 +1112,7 @@ var
 begin
   if FRes.tris <> nil then
   begin
-    m := Mat3(size, normalize(dir), pos);
+    m := GetTransform();
     for i := 0 to FRes.tris.Count - 1 do
     begin
       v := FRes.tris[i];

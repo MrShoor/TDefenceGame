@@ -145,6 +145,7 @@
         <DCCReference Include="gEffects.pas"/>
         <DCCReference Include="gLightRenderer.pas"/>
         <DCCReference Include="gBots.pas"/>
+        <DCCReference Include="gPickableItems.pas"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>

@@ -19,7 +19,8 @@ uses
   gBullets in 'gBullets.pas',
   gEffects in 'gEffects.pas',
   gLightRenderer in 'gLightRenderer.pas',
-  gBots in 'gBots.pas';
+  gBots in 'gBots.pas',
+  gPickableItems in 'gPickableItems.pas';
 
 {$R *.res}
 
