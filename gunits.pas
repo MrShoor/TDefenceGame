@@ -61,6 +61,7 @@ type
   protected
     procedure ShootWithRocket();
     procedure ShootWithMachineGun();
+    procedure ShootWithTesla();
     procedure DoDealDamage(const APower: Single; const ADirection: TVec2; const AForceK: Single; const AOwner: TOwnerInfo); override;
   public
     procedure TowerTargetAt(const ATarget: TVec2);
@@ -135,7 +136,7 @@ begin
 
   fireDir := Normalize(FTarget-Pos);
   firePos := Vec(FFireBones[FFireIdx]^.WorldX, FFireBones[FFireIdx]^.WorldY) * GetTransform;
-  bullet.SetDefaultState(firePos, fireDir, fireDir*80);
+  bullet.SetDefaultState(firePos, FTarget, fireDir, fireDir*80);
 
   Inc(FFireIdx);
   if FFireIdx >= Length(FFireBones) then FFireIdx := 0;
@@ -156,8 +157,28 @@ begin
 
   fireDir := Normalize(FTarget-Pos);
   firePos := Vec(FFireBones[FFireIdx]^.WorldX, FFireBones[FFireIdx]^.WorldY) * GetTransform;
-  bullet.SetDefaultState(firePos, fireDir, fireDir*4 + Velocity);
+  bullet.SetDefaultState(firePos, FTarget, fireDir, fireDir*4 + Velocity);
 
+  Inc(FFireIdx);
+  if FFireIdx >= Length(FFireBones) then FFireIdx := 0;
+end;
+
+procedure TTowerTank.ShootWithTesla;
+var ownerInfo: TOwnerInfo;
+    ray: TTeslaRay;
+    firePos: TVec2;
+    fireDir: TVec2;
+begin
+  ownerInfo.Init(Self, bokPlayer);
+
+  ray := TTeslaRay.Create(World);
+  ray.Owner := ownerInfo;
+  ray.Layer := Layer;
+  ray.ZIndex := ZIndex;
+
+  firePos := Vec(FFireBones[FFireIdx]^.WorldX, FFireBones[FFireIdx]^.WorldY) * GetTransform;
+
+  ray.SetDefaultState(firePos, FTarget);
   Inc(FFireIdx);
   if FFireIdx >= Length(FFireBones) then FFireIdx := 0;
 end;
@@ -299,7 +320,8 @@ end;
 
 procedure TPlayer.DoFire;
 begin
-  ShootWithRocket;
+  //ShootWithRocket;
+  ShootWithTesla;
   if (FSpine <> nil) and (FSpine.SpineAnim <> nil) then FSpine.SpineAnim.SetAnimationByName(1, 'fire'+IntToStr(FFireIdx), false);
 end;
 
@@ -315,7 +337,7 @@ end;
 
 function TPlayer.GetReloadDuration: Integer;
 begin
-  Result := 1000;
+  Result := 100;
 end;
 
 { TUnit }

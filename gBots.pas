@@ -43,7 +43,7 @@ type
     procedure AfterConstruction; override;
   end;
 
-  TStupidBot = class(TBotTank)
+  TTeslaBot = class(TBotTank)
   private
   protected
     function GetMaxMoveSpeed: TVec2; override;
@@ -223,7 +223,7 @@ end;
 procedure TStupidBot.AfterConstruction;
 begin
   inherited;
-  MaxHP := 40;
+  MaxHP := 60;
   HP := MaxHP;
 end;
 
@@ -241,6 +241,31 @@ end;
 function TStupidBot.GetReloadDuration: Integer;
 begin
   Result := 1000;
+end;
+
+{ TTeslaBot }
+
+procedure TTeslaBot.AfterConstruction;
+begin
+  inherited;
+  MaxHP := 40;
+  HP := MaxHP;
+end;
+
+procedure TTeslaBot.DoFire;
+begin
+  inherited;
+  ShootWithTesla();
+end;
+
+function TTeslaBot.GetMaxMoveSpeed: TVec2;
+begin
+  Result := Vec(100,100);
+end;
+
+function TTeslaBot.GetReloadDuration: Integer;
+begin
+  Result := 0;
 end;
 
 initialization

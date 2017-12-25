@@ -26,7 +26,7 @@ VS_Output VS(VS_Input In) {
     LightItem l = LightData[In.InstID];
     
     Out.Pos.zw = float2(0.0, 1.0);
-    Out.Pos.xy = In.vsCoord*(l.Dist+20.0/128.0);
+    Out.Pos.xy = In.vsCoord*(l.Dist+30.0/128.0);
     Out.Pos.xyz += mul(float4(l.wPos,0,1), V_Matrix).xyz;
     Out.Pos = mul(Out.Pos, P_Matrix);
     Out.InstID = In.InstID;

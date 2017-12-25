@@ -128,7 +128,7 @@ begin
   FHeadTex.TexData := EmptyTexData(cCLUSTER_RES_X, cCLUSTER_RES_Y, FHeadTex.TargetFormat, False);
 
   FLights := TavUAV.Create(Self);
-  FLights.SetSize(60000, 2*SizeOf(Integer), False);
+  FLights.SetSize(120000, 2*SizeOf(Integer), False);
 
   FLightsData := TavSB.Create(Self);
   FLightsProj := TavSB.Create(Self);
@@ -216,6 +216,8 @@ begin
   Main.States.SetBlendFunctions(bfSrcAlpha, bfInvSrcAlpha, 0);
 
   if oldFBO <> nil then oldFBO.Select();
+//  AllocConsole;
+//  WriteLn(ALights.Count);
 end;
 
 procedure TavLightMap.DrawGodRays;

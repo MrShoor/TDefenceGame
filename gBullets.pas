@@ -11,6 +11,7 @@ uses
   gWorld, gTypes,
   UPhysics2D, UPhysics2DTypes,
   mutils, avRes,
+  avContnrs,
   intfUtils;
 
 type
@@ -29,7 +30,7 @@ type
     procedure UpdateStep; override;
     function  GetLiveTime: Integer; virtual; abstract;
   public
-    procedure SetDefaultState(const AStartPos: TVec2; const ADir: TVec2; const AStartVel: TVec2);
+    procedure SetDefaultState(const AStartPos, AEndPos: TVec2; const ADir: TVec2; const AStartVel: TVec2);
 
     property  Owner : TOwnerInfo read FOwner write FOwner;
     procedure AfterConstruction; override;
@@ -64,6 +65,34 @@ type
     procedure DrawLightSources(const ALights: ILightInfoArr); override;
 
     procedure AfterConstruction; override;
+  end;
+
+  TTeslaRay = class (TGameSprite)
+  private type
+    IRayPoints = {$IfDef FPC}specialize{$EndIf} IArray<TVec2>;
+    TRayPoints = {$IfDef FPC}specialize{$EndIf} TArray<TVec2>;
+  private
+    FDeadTime: Int64;
+    FOwner: TOwnerInfo;
+
+    FRayPoints: IRayPoints;
+    FRayPointsVel: IRayPoints;
+
+    FLightingColor: TVec4;
+
+    function Filter_ExcludeOwner(const AObj: TGameBody): Boolean;
+  protected
+    procedure UpdateStep; override;
+    function  GetLiveTime: Integer;
+  public
+    procedure SetDefaultState(AStartPos, AEndPos: TVec2);
+
+    property  Owner : TOwnerInfo read FOwner write FOwner;
+    procedure AfterConstruction; override;
+
+    function  HasSpineTris: Boolean; override;
+    procedure Draw(const ASpineVertices: ISpineExVertices); override;
+    procedure DrawLightSources(const ALights: ILightInfoArr); override;
   end;
 
 implementation
@@ -177,7 +206,7 @@ begin
   MainBody.ApplyForceToCenter(TVector2.From(v.x, v.y));
 end;
 
-procedure TBullet.SetDefaultState(const AStartPos, ADir, AStartVel: TVec2);
+procedure TBullet.SetDefaultState(const AStartPos, AEndPos, ADir, AStartVel: TVec2);
 begin
   Pos := AStartPos;
   if LenSqr(ADir) = 0 then
@@ -297,6 +326,149 @@ begin
   v := Velocity;
   Dir := v;
   if LenSqr(v) < Sqr(20) then World.SafeDestroy(Self);
+end;
+
+{ TTeslaRay }
+
+procedure TTeslaRay.AfterConstruction;
+begin
+  inherited;
+  FDeadTime := World.Time + GetLiveTime;
+  SubscribeForUpdateStep;
+  FLightingColor := Vec(0.5,1.0,1.0,1.0);
+end;
+
+procedure TTeslaRay.Draw(const ASpineVertices: ISpineExVertices);
+var sprite: ISpriteIndex;
+    i: Integer;
+begin
+  inherited;
+  sprite := World.GetCommonTextures.WhitePix;
+  for i := 0 to FRayPoints.Count - 2 do
+    Draw_Line(ASpineVertices, sprite, FRayPoints[i], FRayPoints[i+1], 0.1, FLightingColor);
+end;
+
+procedure TTeslaRay.DrawLightSources(const ALights: ILightInfoArr);
+var i: Integer;
+    ls: TLightInfo;
+begin
+  inherited;
+  ls.LightKind := 0;
+  ls.LightColor := FLightingColor*0.15;
+  ls.LightDist := 5.0;
+  for i := 0 to FRayPoints.Count - 1 do
+  begin
+    ls.LightPos := FRayPoints[i];
+    ALights.Add(ls);
+  end;
+end;
+
+function TTeslaRay.Filter_ExcludeOwner(const AObj: TGameBody): Boolean;
+begin
+  if not (AObj is TUnit) then Exit(False);
+  if FOwner.obj <> nil then
+    if FOwner.obj.Obj = AObj then Exit(False);
+  Result := True;
+end;
+
+function TTeslaRay.GetLiveTime: Integer;
+begin
+  Result := PHYS_STEP * 15;
+end;
+
+function TTeslaRay.HasSpineTris: Boolean;
+begin
+  Result := (FRayPoints <> nil) and (FRayPoints.Count > 1);
+end;
+
+procedure TTeslaRay.SetDefaultState(AStartPos, AEndPos: TVec2);
+
+const TESLA_RANGE = 8;
+
+  procedure GenerateRay(const Pt1, Pt2, Vel: TVec2);
+  var midPt: TVec2;
+      n: TVec2;
+      s: Single;
+  begin
+    n := Rotate90(Pt2 - Pt1, Random(2) = 0);
+    if LenSqr(n) < sqr(2.0) then Exit;
+    n := n * 0.08;
+    midPt := Lerp(Pt1, Pt2, 0.5 + Random()*0.2 - 0.1) + n;
+
+    if Random(2) = 0 then s := -1 else s := 1;
+    s := s * (Random()*3);
+    n := n * s + Vel;
+
+    GenerateRay(Pt1, midPt, n);
+    FRayPoints.Add(midPt);
+    FRayPointsVel.Add(n);
+    GenerateRay(midPt, Pt2, n);
+  end;
+
+var objs: IGameObjArr;
+    minDist, Dist: Single;
+    obj: TGameObject;
+    I: Integer;
+    v1, v2: TVec2;
+    shootDir: TVec2;
+begin
+  shootDir := AEndPos - AStartPos;
+  if LenSqr(shootDir) > sqr(TESLA_RANGE) then
+  begin
+    shootDir := SetLen(shootDir, TESLA_RANGE);
+    AEndPos := AStartPos + shootDir;
+  end;
+
+  obj := nil;
+  minDist := 4;
+  objs := World.QueryObjects(AEndPos, minDist, {$IfDef FPC}@{$EndIf}Filter_ExcludeOwner);
+  for I := 0 to objs.Count-1 do
+  begin
+    Dist := Len(AEndPos - objs[i].Pos);
+    if Dist < minDist then
+    begin
+      obj := objs[i];
+      minDist := Dist;
+    end;
+  end;
+  if obj <> nil then
+    AEndPos := obj.Pos;
+
+  if FOwner.obj <> nil then
+    v1 := TUnit(FOwner.obj.Obj).Velocity
+  else
+    v1 := Vec(0,0);
+
+  if obj is TGameDynamicBody then
+    v2 := TGameDynamicBody(obj).Velocity
+  else
+    v2 := Vec(0,0);
+
+  FRayPoints := TRayPoints.Create;
+  FRayPointsVel := TRayPoints.Create;
+  FRayPoints.Add(AStartPos);
+  FRayPointsVel.Add(v1);
+  GenerateRay(AStartPos, AEndPos, (v1+v2)*0.5);
+  FRayPoints.Add(AEndPos);
+  FRayPointsVel.Add(v2);
+
+  if (obj <> nil) and (obj is TUnit) then
+    TUnit(obj).DealDamage(2, Normalize(AEndPos - AStartPos), 0, FOwner);
+end;
+
+procedure TTeslaRay.UpdateStep;
+var i, n: Integer;
+    kk: Single;
+begin
+  inherited;
+  if FDeadTime <= World.Time then
+    World.SafeDestroy(Self);
+  n := FRayPoints.Count - 1;
+  for i := 0 to n do
+  begin
+    kk := 1.0 - abs(i/n - 0.5)*2.0;
+    FRayPoints[i] := FRayPoints[i] + FRayPointsVel[i] * (PHYS_STEP/1000*(kk*Random*2));
+  end;
 end;
 
 end.
