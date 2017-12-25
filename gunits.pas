@@ -8,10 +8,14 @@ unit gUnits;
 interface
 
 uses
+  Windows,
   Classes, SysUtils,
-  gWorld, gTypes,
-  UPhysics2DTypes,
-  mutils, SpineH;
+  gWorld, gTypes, gBullets,
+  UPhysics2D, UPhysics2DTypes,
+  B2Utils,
+  mutils,
+  SpineH,
+  intfUtils;
 
 type
 
@@ -21,7 +25,7 @@ type
   protected
     function GetMaxRotateSpeed: Single; virtual; abstract;
   public
-
+    procedure DealDamage(const APower: Single; const ADirection: TVec2; const AOwner: TOwnerInfo); virtual;
   end;
 
   { TTowerTank }
@@ -35,17 +39,24 @@ type
     FTargetBone: PspBone;
     FOutBones  : array of PspBone;
     FFireBones : array of PspBone;
+    FFireIdx : Integer;
 
-    function GetMaxMoveSpeed: TVec2; virtual; abstract;
-
+    FNextFireReadyTime: Int64;
+  protected
+    function  GetDefaultSkin: string; virtual;
+    function  GetMaxMoveSpeed: TVec2; virtual; abstract;
+    function  GetReloadDuration: Integer; virtual; abstract;
+    procedure DoFire(); virtual; abstract;
+  protected
     procedure DoSetResource(const ARes: TGameResource); override;
-    procedure UpdateStep; override;
   public
     procedure TowerTargetAt(const ATarget: TVec2);
 
     procedure Move(const AForwardForce: Single);
     procedure RotateBy(AAngle: Single);
     procedure RotateAt(const ATarget: TVec2);
+
+    procedure Fire();
 
     procedure AfterConstruction; override;
 
@@ -58,9 +69,14 @@ type
   TPlayer = class(TTowerTank)
   private
   protected
+    function GetDefaultSkin: string; override;
     function GetMaxRotateSpeed: Single; override;
     function GetMaxMoveSpeed: TVec2; override;
+    function GetReloadDuration: Integer; override;
+  protected
+    procedure DoFire(); override;
   public
+
     procedure AfterConstruction; override;
   end;
 
@@ -90,6 +106,11 @@ begin
   Angle := Angle + AAngle;
 end;
 
+function TTowerTank.GetDefaultSkin: string;
+begin
+  Result := 'red';
+end;
+
 procedure TTowerTank.DoSetResource(const ARes: TGameResource);
 var
   i: Integer;
@@ -99,11 +120,12 @@ begin
   inherited DoSetResource(ARes);
   if Length(ARes.spine) = 0 then Exit;
   FSpine := @ARes.spine[0];
+  FSpine^.SpineSkel.SetSkinByName(GetDefaultSkin());
 
   pBone := FSpine^.SpineSkel.Handle^.bones;
   for i := 0 to FSpine^.SpineSkel.Handle^.bonesCount - 1 do
   begin
-    boneName := LowerCase(pBone^^.data^.name);
+    boneName := LowerCase(string(pBone^^.data^.name));
     if boneName = 'target' then
         FTargetBone := pBone^
     else
@@ -113,21 +135,13 @@ begin
       FOutBones[High(FOutBones)] := pBone^;
     end
     else
-    if system.Pos('fire_out', boneName) > 0 then
+    if system.Pos('bullet', boneName) > 0 then
     begin
       SetLength(FFireBones, Length(FFireBones) + 1);
       FFireBones[High(FFireBones)] := pBone^;
     end;
     Inc(pBone);
   end;
-//  FSpine^.SpineAnim.SetAnimationByName(0, 'fire', true);
-end;
-
-procedure TTowerTank.UpdateStep;
-begin
-  inherited UpdateStep;
-  if (FSpine <> nil) and (FSpine^.SpineAnim <> nil) then
-    FSpine^.SpineAnim.Update(PHYS_STEP/1000);
 end;
 
 procedure TTowerTank.TowerTargetAt(const ATarget: TVec2);
@@ -167,9 +181,18 @@ begin
        FTargetBone^.pos := FTarget * GetTransformInv();
     end;
     FSpine^.SpineSkel.WriteVertices(GetSpineVertexCallBack(ASpineVertices, GetTransform()), 0);
+
+    b2DebugDraw(ASpineVertices);
   end
   else
     inherited Draw(ASpineVertices);
+end;
+
+procedure TTowerTank.Fire;
+begin
+  if FNextFireReadyTime > World.Time then Exit;
+  FNextFireReadyTime := World.Time + GetReloadDuration;
+  DoFire();
 end;
 
 { TPlayer }
@@ -184,9 +207,49 @@ begin
   inherited AfterConstruction;
 end;
 
+procedure TPlayer.DoFire;
+var ownerInfo: TOwnerInfo;
+    rocket: TRocket;
+    firePos: TVec2;
+    fireDir: TVec2;
+begin
+  ownerInfo.Init(Self, bokPlayer);
+
+  rocket := TRocket.Create(World);
+  rocket.Owner := ownerInfo;
+  rocket.Layer := Layer;
+  rocket.ZIndex := ZIndex;
+
+  fireDir := Normalize(FTarget-Pos);
+  firePos := Vec(FFireBones[FFireIdx]^.WorldX, FFireBones[FFireIdx]^.WorldY) * GetTransform;
+  rocket.SetDefaultState(firePos, fireDir, fireDir + Velocity);
+
+  if (FSpine <> nil) and (FSpine.SpineAnim <> nil) then FSpine.SpineAnim.SetAnimationByName(1, 'fire'+IntToStr(FFireIdx), false);
+
+  Inc(FFireIdx);
+  if FFireIdx >= Length(FFireBones) then FFireIdx := 0;
+end;
+
+function TPlayer.GetDefaultSkin: string;
+begin
+  Result := 'blue';
+end;
+
 function TPlayer.GetMaxRotateSpeed: Single;
 begin
   Result := 0.02;
+end;
+
+function TPlayer.GetReloadDuration: Integer;
+begin
+  Result := 2000;
+end;
+
+{ TUnit }
+
+procedure TUnit.DealDamage(const APower: Single; const ADirection: TVec2; const AOwner: TOwnerInfo);
+begin
+
 end;
 
 initialization

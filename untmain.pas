@@ -255,6 +255,8 @@ begin
 
   if Intersect(Plane(0,0,1,0), FMain.Cursor.Ray, intpt) then
     tank.TowerTargetAt(intpt.xy);
+
+  if FGameInput.Shoot then tank.Fire();
 end;
 
 procedure TfrmMain.RenderScene;

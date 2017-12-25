@@ -1,0 +1,41 @@
+
+skeleton.png
+size: 109,52
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+flame0
+  rotate: true
+  xy: 68, 28
+  size: 20, 37
+  orig: 20, 37
+  offset: 0, 0
+  index: -1
+flame1
+  rotate: true
+  xy: 4, 4
+  size: 20, 36
+  orig: 20, 36
+  offset: 0, 0
+  index: -1
+flame2
+  rotate: true
+  xy: 44, 4
+  size: 20, 35
+  orig: 20, 35
+  offset: 0, 0
+  index: -1
+flame3
+  rotate: true
+  xy: 28, 28
+  size: 20, 36
+  orig: 20, 36
+  offset: 0, 0
+  index: -1
+rocket
+  rotate: true
+  xy: 4, 37
+  size: 11, 20
+  orig: 11, 20
+  offset: 0, 0
+  index: -1

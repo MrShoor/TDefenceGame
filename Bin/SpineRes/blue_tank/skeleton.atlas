@@ -1,33 +1,33 @@
 
 skeleton.png
-size: 512,256
+size: 449,196
 format: RGBA8888
 filter: Linear,Linear
 repeat: none
 blue_base
-  rotate: false
-  xy: 4, 100
+  rotate: true
+  xy: 4, 20
   size: 172, 132
   orig: 172, 132
   offset: 0, 0
   index: -1
 blue_canon
   rotate: false
-  xy: 4, 4
+  xy: 276, 100
   size: 169, 92
   orig: 169, 92
   offset: 0, 0
   index: -1
 red_base
-  rotate: false
-  xy: 180, 100
+  rotate: true
+  xy: 140, 20
   size: 172, 132
   orig: 172, 132
   offset: 0, 0
   index: -1
 red_canon
   rotate: false
-  xy: 177, 4
+  xy: 276, 4
   size: 169, 92
   orig: 169, 92
   offset: 0, 0

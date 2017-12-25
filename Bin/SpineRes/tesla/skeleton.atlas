@@ -1,33 +1,33 @@
 
 skeleton.png
-size: 512,256
+size: 582,140
 format: RGBA8888
 filter: Linear,Linear
 repeat: none
 blue_tesla_base
   rotate: false
-  xy: 4, 110
+  xy: 4, 4
   size: 165, 132
   orig: 165, 132
   offset: 0, 0
   index: -1
 blue_tesla_canon
   rotate: false
-  xy: 342, 125
+  xy: 342, 19
   size: 116, 117
   orig: 116, 117
   offset: 0, 0
   index: -1
 red_tesla_base
   rotate: false
-  xy: 173, 110
+  xy: 173, 4
   size: 165, 132
   orig: 165, 132
   offset: 0, 0
   index: -1
 red_tesla_canon
   rotate: false
-  xy: 342, 4
+  xy: 462, 19
   size: 116, 117
   orig: 116, 117
   offset: 0, 0

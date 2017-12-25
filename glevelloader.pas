@@ -260,7 +260,7 @@ class function TLevelLoader.LoadItem(const AObj: ISuperObject; const AWorld: TWo
     if Result <> nil then Exit;
     Result := TGameSprite;
     if AObj.O['Fixtures'] <> nil then
-      Result := TGameSingleBody;
+      Result := TGameStaticBody;
   end;
 
   procedure LoadTris(const AObj: ISuperObject; var ARes: TGameResource);

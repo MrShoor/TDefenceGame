@@ -52,6 +52,7 @@ type
     shadowcasters: array of TVec2Arr;
 
     spine : array of TGameSpineRes;
+    procedure Clear;
   end;
 
   TRenderBatchKind = (rbkUnknown, rbkSpine, rbkSpineLighted, rbkParticles, rbkParticlesLighted);
@@ -203,14 +204,23 @@ begin
   SpineSkel := nil;
   SpineAnim := nil;
   Dir := ExtractFilePath(ParamStr(0)) + 'SpineRes\' + ADir;
-  if not DirectoryExists(Dir) then Exit;
   skel := Dir + '\skeleton.skel';
-  if not FileExists(skel) then Exit;
   atlas := Dir + '\skeleton.atlas';
-  if not FileExists(atlas) then Exit;
-  SpineSkel := Create_IspSkeleton(atlas, skel, AAtlas, 3.0/333);
+  SpineSkel := SkeletonCache.ObtainSkeleton(atlas, skel, AAtlas, 1/80);
   SpineAnim := Create_IspAnimationState(SpineSkel, 0.1);
   SpineAnim.SetAnimationByName(0, 'idle', true);
+end;
+
+{ TGameResource }
+
+procedure TGameResource.Clear;
+begin
+  images := nil;
+  tris := nil;
+  fixtures_poly := nil;
+  fixtures_cir := nil;
+  shadowcasters := nil;
+  spine := nil;
 end;
 
 end.
