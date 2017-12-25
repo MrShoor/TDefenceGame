@@ -133,6 +133,7 @@ type
     function MainBody: Tb2Body; virtual; abstract;
 
     procedure AfterConstruction; override;
+    destructor Destroy; override;
   end;
 
   { TGameSingleBody }
@@ -512,6 +513,16 @@ begin
       fixture := fixture.GetNext;
     end;
   end;
+end;
+
+destructor TGameBody.Destroy;
+var i: Integer;
+begin
+  for i := 0 to BodiesCount - 1 do
+  begin
+    World.Fb2World.DestroyBody(GetBody(i));
+  end;
+  inherited;
 end;
 
 procedure TGameBody.Draw(const ASpineVertices: ISpineExVertices);

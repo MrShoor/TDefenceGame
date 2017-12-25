@@ -45,6 +45,8 @@ type
   public
     procedure SetDefaultState(const AStartPos: TVec2; const ADir: TVec2; const AStartVel: TVec2);
 
+    procedure DrawLightSources(const ALights: ILightInfoArr); override;
+
     procedure AfterConstruction; override;
   end;
 
@@ -83,6 +85,19 @@ begin
   Result.linearDamping := 0.2;
   Result.angularDamping := 0.2;
   Result.allowSleep := True;
+end;
+
+procedure TRocket.DrawLightSources(const ALights: ILightInfoArr);
+var ls: TLightInfo;
+    k : Single;
+begin
+  inherited;
+  k := 0.3 + Sin(World.Time * 0.1)*0.1;
+  ls.LightKind := 0;
+  ls.LightPos := Vec(-0.6, 0) * GetTransform();
+  ls.LightDist := 3;
+  ls.LightColor := Vec(0.988235294117647, 0.792156862745098, 0.0117647058823529, 1.0)*k;
+  ALights.Add(ls);
 end;
 
 function TRocket.Filter_UnitsOnly(const AObj: TGameBody): Boolean;
