@@ -963,6 +963,9 @@ begin
       end;
       gobj.DrawParticles(newBatch.Particles);
     end;
+
+    gobj.DrawLightSources(ALights);
+    gobj.DrawShadowCasters(AShadowCasters);
   end;
 end;
 
@@ -1084,8 +1087,27 @@ begin
 end;
 
 procedure TGameObject.DrawShadowCasters(const AShadowCasters: IShadowVertices);
+var m : TMat3;
+    v : TShadowVertex;
+    i, j: Integer;
 begin
+  if FRes.shadowcasters = nil then Exit;
 
+  m := Mat3(size, normalize(dir), pos);
+  for i := 0 to Length(FRes.shadowcasters) - 1 do
+  begin
+    if Length(FRes.shadowcasters[i]) < 2 then Continue;
+    v.vsCoord := FRes.shadowcasters[i][0] * m;
+    for j := 1 to Length(FRes.shadowcasters[i]) - 1 do
+    begin
+      AShadowCasters.Add(v);
+      v.vsCoord := FRes.shadowcasters[i][j] * m;
+      AShadowCasters.Add(v);
+    end;
+    AShadowCasters.Add(v);
+    v.vsCoord := FRes.shadowcasters[i][0] * m;
+    AShadowCasters.Add(v);
+  end;
 end;
 
 function TGameObject.HasParticles: Boolean;

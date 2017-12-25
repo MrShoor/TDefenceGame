@@ -14,6 +14,7 @@ object frmMain: TfrmMain
   WindowState = wsMaximized
   OnCreate = FormCreate
   OnDestroy = FormDestroy
+  OnMouseDown = FormMouseDown
   OnPaint = FormPaint
   PixelsPerInch = 96
   TextHeight = 13

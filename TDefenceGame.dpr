@@ -17,7 +17,8 @@ uses
   gtypes in 'gtypes.pas',
   gunits in 'gunits.pas',
   gBullets in 'gBullets.pas',
-  gEffects in 'gEffects.pas';
+  gEffects in 'gEffects.pas',
+  gLightRenderer in 'gLightRenderer.pas';
 
 {$R *.res}
 

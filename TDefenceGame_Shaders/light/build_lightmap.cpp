@@ -42,6 +42,6 @@ PS_Output PS(VS_Output In) {
     PS_Output Out;
     float2 UV = (In.Pos.xy)/ScreenSize;
     Out.Color.rgb = ApplyLighting(UV, In.wPos.xy).rgb;
-    Out.Color.a = 1.0;
+    Out.Color.a = 0.0;
     return Out;
 }

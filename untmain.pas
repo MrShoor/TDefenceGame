@@ -66,6 +66,8 @@ type
     procedure FormDestroy(Sender: TObject);
     procedure FormPaint(Sender: TObject);
     procedure FPSTimerTimer(Sender: TObject);
+    procedure FormMouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
   private
     FGameInput: TGameInput;
     FMain     : TavMainRender;
@@ -99,6 +101,7 @@ type
     procedure EraseBackground(DC: HDC); override;
   {$EndIf}
   public
+    procedure InvalidateShaders;
     procedure UpdateCaption;
     property PlayerTank: TTowerTank read GetPlayerTank write SetPlayerTank;
   public
@@ -143,6 +146,12 @@ begin
   FreeAndNil(FWorld);
   FreeAndNil(FMain);
   FreeAndNil(FGameInput);
+end;
+
+procedure TfrmMain.FormMouseDown(Sender: TObject; Button: TMouseButton;
+  Shift: TShiftState; X, Y: Integer);
+begin
+  InvalidateShaders;
 end;
 
 procedure TfrmMain.FormPaint(Sender: TObject);
@@ -224,6 +233,13 @@ begin
 
   BuildLevel;
   //FParticles.SetTime(FWorld.Time);
+end;
+
+procedure TfrmMain.InvalidateShaders;
+begin
+  FSpineProgram.Invalidate;
+  FProgramResolveHDR.Invalidate;
+  FLightMaps.InvalidateShaders;
 end;
 
 procedure TfrmMain.BuildLevel;

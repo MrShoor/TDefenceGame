@@ -62,6 +62,7 @@ type
 
     function  HasSpineTris: Boolean; override;
     procedure Draw(const ASpineVertices: ISpineExVertices); override;
+    procedure DrawLightSources(const ALights: ILightInfoArr); override;
   end;
 
   { TPlayer }
@@ -188,10 +189,28 @@ begin
     inherited Draw(ASpineVertices);
 end;
 
+procedure TTowerTank.DrawLightSources(const ALights: ILightInfoArr);
+var l: TLightInfo;
+begin
+  inherited;
+  l.LightKind := 0;
+  l.LightDist := 10;
+  l.LightPos := Pos;
+  l.LightColor := Vec(1,1,1,1);
+  ALights.Add(l);
+end;
+
 procedure TTowerTank.Fire;
 begin
   if FNextFireReadyTime > World.Time then Exit;
   FNextFireReadyTime := World.Time + GetReloadDuration;
+
+  if FTargetBone <> nil then
+  begin
+     FTargetBone^.pos := FTarget * GetTransformInv();
+     FSpine.SpineSkel.UpdateWorldTransform;
+  end;
+
   DoFire();
 end;
 

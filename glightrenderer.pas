@@ -190,6 +190,7 @@ begin
     if ALights.Count > 0 then
     begin
       FLightsData.Vertices := ALights as IVerticesData;
+      FLightsData.Invalidate;
       FDrawClustersProgram.Select();
       FDrawClustersProgram.SetAttributes(FLightsVB, nil, nil);
       FDrawClustersProgram.SetUniform('LightData', FLightsData);
@@ -251,6 +252,7 @@ begin
   FShadowFBOFrontFaces.Clear(0,Vec(0,0,0,0));
 
   FShadowCastersVB.Vertices := AShadowCasters as IVerticesData;
+  FShadowCastersVB.Invalidate;
 
   Main.States.SetBlendFunctions(bfOne, bfOne);
   Main.States.SetBlendOperation(boMax, 0);
