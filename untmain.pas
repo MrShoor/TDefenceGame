@@ -68,6 +68,8 @@ type
     procedure FPSTimerTimer(Sender: TObject);
     procedure FormMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
+    procedure FormMouseMove(Sender: TObject; Shift: TShiftState; X,
+      Y: Integer);
   private
     FGameInput: TGameInput;
     FMain     : TavMainRender;
@@ -154,6 +156,12 @@ begin
   InvalidateShaders;
 end;
 
+procedure TfrmMain.FormMouseMove(Sender: TObject; Shift: TShiftState; X,
+  Y: Integer);
+begin
+  UpdateCaption;
+end;
+
 procedure TfrmMain.FormPaint(Sender: TObject);
 begin
   RenderScene;
@@ -182,8 +190,16 @@ end;
 {$EndIf}
 
 procedure TfrmMain.UpdateCaption;
+var intPt: TVec3;
+    s: String;
 begin
-  Caption := 'FPS: ' + IntToStr(FFPSLast);
+  s := '';
+  if Intersect(Plane(0,0,1,0), FMain.Cursor.Ray, intPt) then
+  begin
+    s := s + Format('(%f.4, %f.4)', [intPt.x, intPt.y]);
+  end;
+  s := s + ' FPS: ' + IntToStr(FFPSLast);
+  Caption := s;
 end;
 
 procedure TfrmMain.Init;
@@ -194,7 +210,7 @@ begin
   FGameInput := TGameInput.Create;
 
   FMain := TavMainRender.Create(nil);
-  FMain.Camera.Eye := Vec(0,0,-14);
+  FMain.Camera.Eye := Vec(0,0,-18);
 
   FFBOMain := Create_FrameBuffer(FMain, [TTextureFormat.RGBA], [True]);
   FFBO_HDR := Create_FrameBuffer(FMain, [TTextureFormat.RGBA16f], [True]);
@@ -260,6 +276,8 @@ begin
 
   tank := PlayerTank;
   if tank = nil then Exit;
+  if tank.IsDead then Exit;
+
   rot := 0;
   acc := 0;
   if FGameInput.Left  then rot := rot + 1;
@@ -302,6 +320,7 @@ begin
     FMain.States.Blending[0] := True;
     FMain.States.SetBlendFunctions(TBlendFunc.bfSrcAlpha, TBlendFunc.bfInvSrcAlpha, 0);
 
+    //FLightMaps.Ambient := Vec(0,0,0,0);
     FLightMaps.BuildClusters(
       FLights,
       FShadowCasters

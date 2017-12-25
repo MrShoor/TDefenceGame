@@ -59,7 +59,7 @@ type
     property Dir  : TVec2  read GetDir   write SetDir;
     property Size : TVec2  read GetSize  write SetSize;
 
-    function GetTransform: TMat3;
+    function GetTransform: TMat3; virtual;
     function GetTransformInv: TMat3;
 
     procedure SetResource(const ARes: TGameResource);
@@ -143,6 +143,7 @@ type
   protected
     FMainBody: Tb2Body;
 
+    function  CreateFixutreDefForShape(const AShape: Tb2Shape): Tb2FixtureDef; virtual;
     procedure AddFixturesToBody;
     function  CreateBodyDef(const APos: TVector2; const AAngle: Double): Tb2BodyDef; virtual; abstract;
     procedure BuildBody;
@@ -181,7 +182,8 @@ type
   { TWorldCommonTextures }
 
   TWorldCommonTextures = packed record
-    WhitePix: ISpriteIndex;
+    WhitePix   : ISpriteIndex;
+    BulletTrace: ISpriteIndex;
     procedure Load(const AAtlas: TavAtlasArrayReferenced);
   end;
   PWorldCommonTextures = ^TWorldCommonTextures;
@@ -241,13 +243,14 @@ type
 
     FAtlas: TavAtlasArrayReferenced;
     FCommonTextures: TWorldCommonTextures;
-    function GetCommonTextures: PWorldCommonTextures;
   public
     function Time: Int64;
     function FindPlayerObject: TGameObject;
+    function GetCommonTextures: PWorldCommonTextures;
 
     property Atlas: TavAtlasArrayReferenced read FAtlas;
 
+    property b2World: Tb2World read Fb2World;
     property b2ContactListener: TContactListener read Fb2ContactListener;
 
     procedure UpdateStep(const ANewCameraPos: TVec2);
@@ -620,7 +623,8 @@ begin
 
         polyShapeDef := Tb2PolygonShape.Create;
         polyShapeDef.SetVertices(@ShapeVecs[0], stepSize);
-        FMainBody.CreateFixture(polyShapeDef, 0);
+
+        FMainBody.CreateFixture(CreateFixutreDefForShape(polyShapeDef));
 
         if stepSize < Length(ShapeVecs) then
           DeleteVectors(ShapeVecs, 1, stepSize - 2)
@@ -637,7 +641,7 @@ begin
         cirShapeDef := Tb2CircleShape.Create;
         cirShapeDef.m_p := TVector2.From(FRes.fixtures_cir[i].x, FRes.fixtures_cir[i].y);
         cirShapeDef.m_radius := FRes.fixtures_cir[i].z;
-        FMainBody.CreateFixture(cirShapeDef, 0);
+        FMainBody.CreateFixture(CreateFixutreDefForShape(cirShapeDef));
     end;
 end;
 
@@ -663,6 +667,12 @@ begin
   bdef := CreateBodyDef(currPos, currAngle);
   FMainBody := FWorld.Fb2World.CreateBody(bdef, True);
   AddFixturesToBody;
+end;
+
+function TGameSingleBody.CreateFixutreDefForShape(const AShape: Tb2Shape): Tb2FixtureDef;
+begin
+  Result := Tb2FixtureDef.Create;
+  Result.shape := AShape;
 end;
 
 procedure TGameSingleBody.DoSetResource(const ARes: TGameResource);
@@ -739,6 +749,7 @@ end;
 procedure TWorldCommonTextures.Load(const AAtlas: TavAtlasArrayReferenced);
 begin
   WhitePix := AAtlas.ObtainSprite(Default_ITextureManager.LoadTexture('HG\whitepix.png').MipData(0,0));
+  BulletTrace := AAtlas.ObtainSprite(Default_ITextureManager.LoadTexture('HG\guntrace.png').MipData(0,0));
 end;
 
 { TWorld.TRaycastCallback }

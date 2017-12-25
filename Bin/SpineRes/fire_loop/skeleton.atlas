@@ -1,0 +1,103 @@
+
+skeleton.png
+size: 784,784
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+fire1_ 01
+  rotate: false
+  xy: 4, 264
+  size: 256, 256
+  orig: 256, 256
+  offset: 0, 0
+  index: -1
+fire1_ 02
+  rotate: false
+  xy: 264, 524
+  size: 256, 256
+  orig: 256, 256
+  offset: 0, 0
+  index: -1
+fire1_ 03
+  rotate: false
+  xy: 4, 4
+  size: 256, 256
+  orig: 256, 256
+  offset: 0, 0
+  index: -1
+fire1_ 04
+  rotate: false
+  xy: 264, 264
+  size: 256, 256
+  orig: 256, 256
+  offset: 0, 0
+  index: -1
+fire1_ 05
+  rotate: false
+  xy: 524, 524
+  size: 256, 256
+  orig: 256, 256
+  offset: 0, 0
+  index: -1
+fire1_ 06
+  rotate: false
+  xy: 264, 4
+  size: 256, 256
+  orig: 256, 256
+  offset: 0, 0
+  index: -1
+fire1_ 07
+  rotate: false
+  xy: 524, 264
+  size: 256, 256
+  orig: 256, 256
+  offset: 0, 0
+  index: -1
+fire1_ 08
+  rotate: false
+  xy: 524, 4
+  size: 256, 256
+  orig: 256, 256
+  offset: 0, 0
+  index: -1
+fire1_ 13
+  rotate: false
+  xy: 4, 524
+  size: 256, 256
+  orig: 256, 256
+  offset: 0, 0
+  index: -1
+
+skeleton2.png
+size: 524,524
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+fire1_ 09
+  rotate: false
+  xy: 4, 264
+  size: 256, 256
+  orig: 256, 256
+  offset: 0, 0
+  index: -1
+fire1_ 10
+  rotate: false
+  xy: 4, 4
+  size: 256, 256
+  orig: 256, 256
+  offset: 0, 0
+  index: -1
+fire1_ 11
+  rotate: false
+  xy: 264, 264
+  size: 256, 256
+  orig: 256, 256
+  offset: 0, 0
+  index: -1
+fire1_ 12
+  rotate: false
+  xy: 264, 4
+  size: 256, 256
+  orig: 256, 256
+  offset: 0, 0
+  index: -1

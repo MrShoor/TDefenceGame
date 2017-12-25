@@ -15,6 +15,7 @@ object frmMain: TfrmMain
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnMouseDown = FormMouseDown
+  OnMouseMove = FormMouseMove
   OnPaint = FormPaint
   PixelsPerInch = 96
   TextHeight = 13
@@ -24,6 +25,7 @@ object frmMain: TfrmMain
     Top = 40
   end
   object FPSTimer: TTimer
+    OnTimer = FPSTimerTimer
     Left = 232
     Top = 40
   end

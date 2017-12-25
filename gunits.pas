@@ -8,7 +8,6 @@ unit gUnits;
 interface
 
 uses
-  Windows,
   Classes, SysUtils,
   gWorld, gTypes, gBullets,
   UPhysics2D, UPhysics2DTypes,
@@ -18,14 +17,24 @@ uses
   intfUtils;
 
 type
-
   { TUnit }
 
   TUnit = class(TGameDynamicBody)
+  private
+    FMaxHP: Single;
+    FHP: Single;
   protected
+    procedure SetHP(const Value: Single); virtual;
     function GetMaxRotateSpeed: Single; virtual; abstract;
+
+    procedure DoDealDamage(const APower: Single; const ADirection: TVec2; const AForceK: Single; const AOwner: TOwnerInfo); virtual;
   public
-    procedure DealDamage(const APower: Single; const ADirection: TVec2; const AOwner: TOwnerInfo); virtual;
+    function IsDead: Boolean;
+
+    property MaxHP: Single read FMaxHP write FMaxHP;
+    property HP: Single read FHP write SetHP;
+
+    procedure DealDamage(const APower: Single; const ADirection: TVec2; const AForceK: Single; const AOwner: TOwnerInfo); virtual;
   end;
 
   { TTowerTank }
@@ -49,6 +58,10 @@ type
     procedure DoFire(); virtual; abstract;
   protected
     procedure DoSetResource(const ARes: TGameResource); override;
+  protected
+    procedure ShootWithRocket();
+    procedure ShootWithMachineGun();
+    procedure DoDealDamage(const APower: Single; const ADirection: TVec2; const AForceK: Single; const AOwner: TOwnerInfo); override;
   public
     procedure TowerTargetAt(const ATarget: TVec2);
 
@@ -84,7 +97,7 @@ type
 implementation
 
 uses
-  Math, gRegs;
+  Math, gRegs, gEffects;
 
 { TTowerTank }
 
@@ -107,9 +120,65 @@ begin
   Angle := Angle + AAngle;
 end;
 
+procedure TTowerTank.ShootWithMachineGun;
+var ownerInfo: TOwnerInfo;
+    bullet: TBullet;
+    firePos: TVec2;
+    fireDir: TVec2;
+begin
+  ownerInfo.Init(Self, bokPlayer);
+
+  bullet := TSimpleGun.Create(World);
+  bullet.Owner := ownerInfo;
+  bullet.Layer := Layer;
+  bullet.ZIndex := ZIndex;
+
+  fireDir := Normalize(FTarget-Pos);
+  firePos := Vec(FFireBones[FFireIdx]^.WorldX, FFireBones[FFireIdx]^.WorldY) * GetTransform;
+  bullet.SetDefaultState(firePos, fireDir, fireDir*80);
+
+  Inc(FFireIdx);
+  if FFireIdx >= Length(FFireBones) then FFireIdx := 0;
+end;
+
+procedure TTowerTank.ShootWithRocket;
+var ownerInfo: TOwnerInfo;
+    bullet: TBullet;
+    firePos: TVec2;
+    fireDir: TVec2;
+begin
+  ownerInfo.Init(Self, bokPlayer);
+
+  bullet := TRocket.Create(World);
+  bullet.Owner := ownerInfo;
+  bullet.Layer := Layer;
+  bullet.ZIndex := ZIndex;
+
+  fireDir := Normalize(FTarget-Pos);
+  firePos := Vec(FFireBones[FFireIdx]^.WorldX, FFireBones[FFireIdx]^.WorldY) * GetTransform;
+  bullet.SetDefaultState(firePos, fireDir, fireDir*4 + Velocity);
+
+  Inc(FFireIdx);
+  if FFireIdx >= Length(FFireBones) then FFireIdx := 0;
+end;
+
 function TTowerTank.GetDefaultSkin: string;
 begin
   Result := 'red';
+end;
+
+procedure TTowerTank.DoDealDamage(const APower: Single; const ADirection: TVec2; const AForceK: Single; const AOwner: TOwnerInfo);
+var fire: TExplosiveFire;
+begin
+  inherited;
+  if FHP <= 0 then
+  begin
+    fire := TExplosiveFire.Create(World);
+    fire.Layer := glFore1;
+    fire.ZIndex := 0;
+    fire.Pos := Pos;
+    fire.AttachedObject := Self;
+  end;
 end;
 
 procedure TTowerTank.DoSetResource(const ARes: TGameResource);
@@ -194,7 +263,7 @@ var l: TLightInfo;
 begin
   inherited;
   l.LightKind := 0;
-  l.LightDist := 10;
+  l.LightDist := 7;
   l.LightPos := Pos;
   l.LightColor := Vec(1,1,1,1);
   ALights.Add(l);
@@ -218,35 +287,20 @@ end;
 
 function TPlayer.GetMaxMoveSpeed: TVec2;
 begin
-  Result := Vec(100,100);
+  Result := Vec(75,75);
 end;
 
 procedure TPlayer.AfterConstruction;
 begin
   inherited AfterConstruction;
+  FMaxHP := 100;
+  FHP := FMaxHP;
 end;
 
 procedure TPlayer.DoFire;
-var ownerInfo: TOwnerInfo;
-    rocket: TRocket;
-    firePos: TVec2;
-    fireDir: TVec2;
 begin
-  ownerInfo.Init(Self, bokPlayer);
-
-  rocket := TRocket.Create(World);
-  rocket.Owner := ownerInfo;
-  rocket.Layer := Layer;
-  rocket.ZIndex := ZIndex;
-
-  fireDir := Normalize(FTarget-Pos);
-  firePos := Vec(FFireBones[FFireIdx]^.WorldX, FFireBones[FFireIdx]^.WorldY) * GetTransform;
-  rocket.SetDefaultState(firePos, fireDir, fireDir + Velocity);
-
+  ShootWithRocket;
   if (FSpine <> nil) and (FSpine.SpineAnim <> nil) then FSpine.SpineAnim.SetAnimationByName(1, 'fire'+IntToStr(FFireIdx), false);
-
-  Inc(FFireIdx);
-  if FFireIdx >= Length(FFireBones) then FFireIdx := 0;
 end;
 
 function TPlayer.GetDefaultSkin: string;
@@ -261,14 +315,36 @@ end;
 
 function TPlayer.GetReloadDuration: Integer;
 begin
-  Result := 2000;
+  Result := 1000;
 end;
 
 { TUnit }
 
-procedure TUnit.DealDamage(const APower: Single; const ADirection: TVec2; const AOwner: TOwnerInfo);
+procedure TUnit.DealDamage(const APower: Single; const ADirection: TVec2; const AForceK: Single; const AOwner: TOwnerInfo);
+var f: TVec2;
+begin
+  f := ADirection * AForceK;
+  MainBody.ApplyForceToCenter(TVector2.From(f.x, f.y));
+  if FHP > 0 then
+  begin
+    FHP := FHP - APower;
+    DoDealDamage(APower, ADirection, AForceK, AOwner);
+  end;
+end;
+
+procedure TUnit.DoDealDamage(const APower: Single; const ADirection: TVec2; const AForceK: Single; const AOwner: TOwnerInfo);
 begin
 
+end;
+
+function TUnit.IsDead: Boolean;
+begin
+  Result := FHP <= 0;
+end;
+
+procedure TUnit.SetHP(const Value: Single);
+begin
+  FHP := Value;
 end;
 
 initialization

@@ -128,7 +128,7 @@ begin
   FHeadTex.TexData := EmptyTexData(cCLUSTER_RES_X, cCLUSTER_RES_Y, FHeadTex.TargetFormat, False);
 
   FLights := TavUAV.Create(Self);
-  FLights.SetSize(30000, 2*SizeOf(Integer), False);
+  FLights.SetSize(60000, 2*SizeOf(Integer), False);
 
   FLightsData := TavSB.Create(Self);
   FLightsProj := TavSB.Create(Self);
@@ -156,13 +156,13 @@ begin
   FShadowMapFrontFaces.TargetFormat := TTextureFormat.RGBA32f;
   FShadowFBOFrontFaces := TavFrameBuffer.Create(Self);
   FShadowFBOFrontFaces.SetColor(0, FShadowMapFrontFaces);
-  FShadowFBOFrontFaces.FrameRect := RectI(0, 0, 512, 32);
+  FShadowFBOFrontFaces.FrameRect := RectI(0, 0, 512, 64);
 
   FShadowMap := TavTexture.Create(Self);
   FShadowMap.TargetFormat := TTextureFormat.RGBA32f;
   FShadowFBO := TavFrameBuffer.Create(Self);
   FShadowFBO.SetColor(0, FShadowMap);
-  FShadowFBO.FrameRect := RectI(0, 0, 512, 32);
+  FShadowFBO.FrameRect := RectI(0, 0, 512, 64);
 
   FShadowCastersVB := TavVB.Create(Self);
   FShadowCastersVB.PrimType := ptLines;
@@ -215,7 +215,7 @@ begin
   FLightMapProgram.Draw(ptTriangleStrip, cmNone, False, 0, 0, 4);
   Main.States.SetBlendFunctions(bfSrcAlpha, bfInvSrcAlpha, 0);
 
-  if oldFBO <> nil then oldFBO.Select()
+  if oldFBO <> nil then oldFBO.Select();
 end;
 
 procedure TavLightMap.DrawGodRays;

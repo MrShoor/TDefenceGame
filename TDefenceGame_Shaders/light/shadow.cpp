@@ -19,7 +19,7 @@ float DrawFrontFaces = 0.0;
 float LightsCount;
 StructuredBuffer<float3x3>  LightProj;
 
-#define MAX_LIGHTS 32
+#define MAX_LIGHTS 64
 [maxvertexcount(MAX_LIGHTS)]
 void GS(line VS_Input In[2], inout LineStream<GS_Output> OutStream) {
     for (uint i=0; i<min(MAX_LIGHTS, (uint)LightsCount); i++){

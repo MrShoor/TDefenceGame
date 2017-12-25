@@ -18,11 +18,13 @@ uses
   gunits in 'gunits.pas',
   gBullets in 'gBullets.pas',
   gEffects in 'gEffects.pas',
-  gLightRenderer in 'gLightRenderer.pas';
+  gLightRenderer in 'gLightRenderer.pas',
+  gBots in 'gBots.pas';
 
 {$R *.res}
 
 begin
+  ReportMemoryLeaksOnShutdown := True;
   Application.Initialize;
   Application.MainFormOnTaskbar := True;
   Application.CreateForm(TfrmMain, frmMain);

@@ -104,7 +104,7 @@ float4 ApplyLighting(float2 UV, float2 Pos) {
     //idx = 0;
     //return (idx != 0xFFFFFFFF)*100.0;
 
-    for (int i = 0; i < 10; i++){
+    for (int i = 0; i < 30; i++){
         if (idx != 0xFFFFFFFF) {
             LightNode ln = LightList[idx];
             Out += ApplyLight(ln.LightIdx, Pos);
