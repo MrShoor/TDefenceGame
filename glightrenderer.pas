@@ -121,7 +121,7 @@ procedure TavLightMap.AfterConstruction;
 
 begin
   inherited;
-  FAmbient := Vec(0.1,0.1,0.1,0.1);
+  FAmbient := Vec(0.05,0.05,0.05,0.05);
 
   FHeadTex := TavTexture.Create(Self);
   FHeadTex.TargetFormat := TTextureFormat.R32;

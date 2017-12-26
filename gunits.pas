@@ -209,6 +209,7 @@ begin
 
   Inc(FFireIdx);
   if FFireIdx >= Length(FFireBones) then FFireIdx := 0;
+  World.PlaySound('grenade', Pos, Velocity);
 end;
 
 procedure TTowerTank.ShootWithMachineGun;
@@ -230,6 +231,8 @@ begin
 
   Inc(FFireIdx);
   if FFireIdx >= Length(FFireBones) then FFireIdx := 0;
+
+  World.PlaySound('machinegun', Pos, Velocity);
 end;
 
 procedure TTowerTank.ShootWithRocket(const APowerRocket: Boolean);
@@ -251,6 +254,7 @@ begin
 
   Inc(FFireIdx);
   if FFireIdx >= Length(FFireBones) then FFireIdx := 0;
+  World.PlaySound('rocketlaucher', Pos, Velocity);
 end;
 
 procedure TTowerTank.ShootWithTesla;
@@ -270,6 +274,7 @@ begin
   ray.SetDefaultState(firePos, FTarget);
   Inc(FFireIdx);
   if FFireIdx >= Length(FFireBones) then FFireIdx := 0;
+  World.PlaySound('tesla', Pos, Velocity);
 end;
 
 function TTowerTank.GetDefaultSkin: string;
@@ -278,16 +283,16 @@ begin
 end;
 
 procedure TTowerTank.DoDealDamage(const APower: Single; const ADirection: TVec2; const AForceK: Single; const AOwner: TOwnerInfo);
-var fire: TExplosiveFire;
+var lfire: TExplosiveFire;
 begin
   inherited;
   if FHP <= 0 then
   begin
-    fire := TExplosiveFire.Create(World);
-    fire.Layer := glFore1;
-    fire.ZIndex := 0;
-    fire.Pos := Pos;
-    fire.AttachedObject := Self;
+    lfire := TExplosiveFire.Create(World);
+    lfire.Layer := glFore1;
+    lfire.ZIndex := 0;
+    lfire.Pos := Pos;
+    lfire.AttachedObject := Self;
   end;
 end;
 
@@ -389,7 +394,7 @@ begin
   if FTargetBone <> nil then
   begin
      FTargetBone^.pos := FTarget * GetTransformInv();
-     FSpine.SpineSkel.UpdateWorldTransform;
+     FSpine^.SpineSkel.UpdateWorldTransform;
   end;
 
   DoFire();
@@ -405,7 +410,7 @@ end;
 procedure TPlayer.AfterConstruction;
 begin
   inherited AfterConstruction;
-  FMaxHP := 3;
+  FMaxHP := 200;
   FHP := FMaxHP;
   FIsPlayer := True;
 end;
@@ -432,7 +437,7 @@ begin
     end;
   end;
   if FActiveWeapon <> pwTesla then
-    if (FSpine <> nil) and (FSpine.SpineAnim <> nil) then FSpine.SpineAnim.SetAnimationByName(1, 'fire'+IntToStr(FFireIdx), false);
+    if (FSpine <> nil) and (FSpine^.SpineAnim <> nil) then FSpine^.SpineAnim.SetAnimationByName(1, 'fire'+IntToStr(FFireIdx), false);
 end;
 
 procedure TPlayer.DoSetResource(const ARes: TGameResource);
@@ -473,59 +478,59 @@ end;
 procedure TPlayer.DrawUI(const ASpineVertices: ISpineExVertices);
 var str: ISpriteIndexArr;
     basePos: TVec2;
-    size: TVec2;
+    lsize: TVec2;
 begin
   inherited;
 
-  size := Vec(350, 630);
-  Draw_UI_Symbol(ASpineVertices, World.GetCommonTextures.WhitePix, Vec(0,size.y*0.5), size, Vec(0,0,0,0.5));
+  lsize := Vec(350, 630);
+  Draw_UI_Symbol(ASpineVertices, World.GetCommonTextures^.WhitePix, Vec(0,lsize.y*0.5), lsize, Vec(0,0,0,0.5));
 
   basePos := Vec(50, 570);
   if SpeedBoost > World.Time then
   begin
-    Draw_UI_Symbol(ASpineVertices, World.GetCommonTextures.speed, basePos, Vec(1,1), Vec(1,1,1,1));
+    Draw_UI_Symbol(ASpineVertices, World.GetCommonTextures^.speed, basePos, Vec(1,1), Vec(1,1,1,1));
     basePos.x := basePos.x + 40;
   end;
   if FireRateBoost > World.Time then
-    Draw_UI_Symbol(ASpineVertices, World.GetCommonTextures.firerate, basePos, Vec(1,1), Vec(1,1,1,1));
+    Draw_UI_Symbol(ASpineVertices, World.GetCommonTextures^.firerate, basePos, Vec(1,1), Vec(1,1,1,1));
 
   basePos := Vec(50, 470);
-  Draw_UI_Symbol(ASpineVertices, World.GetCommonTextures.hp, basePos+Vec(10, 0), Vec(1,1), Vec(1,1,1,1));
-  str := World.ObtainGlyphs(Format('%d/%d',[mutils.Ceil(HP), mutils.Ceil(MaxHP)]), 'Arial', 24);
+  Draw_UI_Symbol(ASpineVertices, World.GetCommonTextures^.hp, basePos+Vec(10, 0), Vec(1,1), Vec(1,1,1,1));
+  str := World.ObtainGlyphs(Format('%d/%d',[math.Ceil(HP), math.Ceil(MaxHP)]), 'Arial', 24);
   Draw_UI_Str(ASpineVertices, str, basePos+Vec(110, 0), Vec(1, 1), Vec(1,1,1,1));
 
   basePos := Vec(40, 370);
   str := World.ObtainGlyphs('1', 'Arial', 24);
   Draw_UI_Str(ASpineVertices, str, basePos, Vec(1, 1), Vec(1,1,1,1));
-  Draw_UI_Symbol(ASpineVertices, World.GetCommonTextures.canon_machinegun, basePos+Vec(50, 0), Vec(0.5,0.5), Vec(1,1,1,1));
+  Draw_UI_Symbol(ASpineVertices, World.GetCommonTextures^.canon_machinegun, basePos+Vec(50, 0), Vec(0.5,0.5), Vec(1,1,1,1));
   str := World.ObtainGlyphs(WideChar(#$221E), 'Arial', 24);
   Draw_UI_Str(ASpineVertices, str, basePos+Vec(150, 0), Vec(1, 1), Vec(1,0,0,1));
 
   basePos := Vec(40, 300);
   str := World.ObtainGlyphs('2', 'Arial', 24);
   Draw_UI_Str(ASpineVertices, str, basePos, Vec(1, 1), Vec(1,1,1,1));
-  Draw_UI_Symbol(ASpineVertices, World.GetCommonTextures.canon_rocket_mini, basePos+Vec(50, 0), Vec(0.5,0.5), Vec(1,1,1,1));
+  Draw_UI_Symbol(ASpineVertices, World.GetCommonTextures^.canon_rocket_mini, basePos+Vec(50, 0), Vec(0.5,0.5), Vec(1,1,1,1));
   str := World.ObtainGlyphs(IntToStr(Ammo_MiniRocket), 'Arial', 24);
   Draw_UI_Str(ASpineVertices, str, basePos+Vec(150, 0), Vec(1, 1), Vec(1,0,0,1));
 
   basePos := Vec(40, 230);
   str := World.ObtainGlyphs('3', 'Arial', 24);
   Draw_UI_Str(ASpineVertices, str, basePos, Vec(1, 1), Vec(1,1,1,1));
-  Draw_UI_Symbol(ASpineVertices, World.GetCommonTextures.canon_rocket, basePos+Vec(50, 0), Vec(0.5,0.5), Vec(1,1,1,1));
+  Draw_UI_Symbol(ASpineVertices, World.GetCommonTextures^.canon_rocket, basePos+Vec(50, 0), Vec(0.5,0.5), Vec(1,1,1,1));
   str := World.ObtainGlyphs(IntToStr(Ammo_Rocket), 'Arial', 24);
   Draw_UI_Str(ASpineVertices, str, basePos+Vec(150, 0), Vec(1, 1), Vec(1,0,0,1));
 
   basePos := Vec(40, 160);
   str := World.ObtainGlyphs('4', 'Arial', 24);
   Draw_UI_Str(ASpineVertices, str, basePos, Vec(1, 1), Vec(1,1,1,1));
-  Draw_UI_Symbol(ASpineVertices, World.GetCommonTextures.canon_tesla, basePos+Vec(50, 0), Vec(0.5,0.5), Vec(1,1,1,1));
+  Draw_UI_Symbol(ASpineVertices, World.GetCommonTextures^.canon_tesla, basePos+Vec(50, 0), Vec(0.5,0.5), Vec(1,1,1,1));
   str := World.ObtainGlyphs(IntToStr(Ammo_Tesla), 'Arial', 24);
   Draw_UI_Str(ASpineVertices, str, basePos+Vec(150, 0), Vec(1, 1), Vec(1,0,0,1));
 
   basePos := Vec(40, 90);
   str := World.ObtainGlyphs('5', 'Arial', 24);
   Draw_UI_Str(ASpineVertices, str, basePos, Vec(1, 1), Vec(1,1,1,1));
-  Draw_UI_Symbol(ASpineVertices, World.GetCommonTextures.canon_grenades, basePos+Vec(50, 0), Vec(0.5,0.5), Vec(1,1,1,1));
+  Draw_UI_Symbol(ASpineVertices, World.GetCommonTextures^.canon_grenades, basePos+Vec(50, 0), Vec(0.5,0.5), Vec(1,1,1,1));
   str := World.ObtainGlyphs(IntToStr(Ammo_Grenade), 'Arial', 24);
   Draw_UI_Str(ASpineVertices, str, basePos+Vec(150, 0), Vec(1, 1), Vec(1,0,0,1));
 end;
@@ -544,6 +549,7 @@ begin
   if noAmmo then
   begin
     SetWeapon(pwMachineGun);
+    World.PlaySound('noammo', Pos, Velocity);
     Exit;
   end;
   inherited;
@@ -593,8 +599,8 @@ begin
 //  end;
 
   FActiveWeapon := AWeapon;
-  if (FSpine <> nil) and (FSpine.SpineSkel <> nil) then
-    FSpine.SpineSkel.SetSkinByName(cPlayerSkinName[FActiveWeapon]);
+  if (FSpine <> nil) and (FSpine^.SpineSkel <> nil) then
+    FSpine^.SpineSkel.SetSkinByName(cPlayerSkinName[FActiveWeapon]);
   if FActiveWeapon = pwTesla then
     FFireBones := FTeslaBones
   else

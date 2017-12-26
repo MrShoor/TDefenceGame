@@ -335,7 +335,7 @@ begin
   if not World.InDestroy then
   begin
     case Random(DEF_DROP_CHANCE) of
-      0: item := TPickItem_Canon_RocketMini.Create(World);
+      0: item := TPickItem_Canon_Tesla.Create(World);
     else
       item := nil;
     end;
@@ -385,7 +385,7 @@ begin
   if not World.InDestroy then
   begin
     case Random(DEF_DROP_CHANCE) of
-      0: item := TPickItem_Canon_RocketMini.Create(World);
+      0: item := TPickItem_Canon_Grenade.Create(World);
     else
       item := nil;
     end;

@@ -1,5 +1,11 @@
 program TDefenceGame;
 
+{$IfDef FPC}
+  {$R 'TDefenceGame_Shaders\shaders.rc'}
+{$Else}
+  {$R 'shaders.res' 'TDefenceGame_Shaders\shaders.rc'}
+{$EndIf}
+
 uses
   Vcl.Forms,
   untmain in 'untmain.pas' {frmMain},
@@ -27,7 +33,7 @@ uses
 {$R *.res}
 
 begin
-  ReportMemoryLeaksOnShutdown := True;
+//  ReportMemoryLeaksOnShutdown := True;
   Application.Initialize;
   Application.MainFormOnTaskbar := True;
   Application.CreateForm(TfrmMain, frmMain);

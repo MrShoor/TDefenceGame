@@ -363,6 +363,8 @@ type
     procedure SafeDestroy(const AObj: TGameObject);
     procedure ProcessToDestroy;
 
+    procedure PlaySound(const AName: String; const APos: TVec2; const AVel: TVec2);
+
     function QueryObjects(const APt: TVec2; ARad: Single; const AFilter: TQueryFilter): IGameObjArr;
     function RayCast(const AStart, AStop: TVec2; out HitPt: TVec2; const AFilter: TQueryFilter): TGameBody; overload;
 
@@ -631,7 +633,7 @@ begin
             pt2 := VecSinCos(fi2)*shapeCircle.m_radius + v;
             pt1 := pt1 * m;
             pt2 := pt2 * m;
-            Draw_Line(AVert, World.GetCommonTextures.WhitePix, pt1, pt2, 0.02, Vec(1,0,0,1));
+            Draw_Line(AVert, World.GetCommonTextures^.WhitePix, pt1, pt2, 0.02, Vec(1,0,0,1));
           end;
         end;
         e_edgeShape:
@@ -639,7 +641,7 @@ begin
           shapeEdge := shape as Tb2EdgeShape;
           pt1 := Vec(shapeEdge.m_vertex1.x, shapeEdge.m_vertex1.y) * m;
           pt2 := Vec(shapeEdge.m_vertex2.x, shapeEdge.m_vertex2.y) * m;
-          Draw_Line(AVert, World.GetCommonTextures.WhitePix, pt1, pt2, 0.02, Vec(1,0,0,1));
+          Draw_Line(AVert, World.GetCommonTextures^.WhitePix, pt1, pt2, 0.02, Vec(1,0,0,1));
         end;
         e_polygonShape:
         begin
@@ -649,7 +651,7 @@ begin
             inext := (i + 1) mod shapePoly.m_count;
             pt1 := Vec(shapePoly.m_vertices[i].x, shapePoly.m_vertices[i].y) * m;
             pt2 := Vec(shapePoly.m_vertices[inext].x, shapePoly.m_vertices[inext].y) * m;
-            Draw_Line(AVert, World.GetCommonTextures.WhitePix, pt1, pt2, 0.02, Vec(1,0,0,1));
+            Draw_Line(AVert, World.GetCommonTextures^.WhitePix, pt1, pt2, 0.02, Vec(1,0,0,1));
           end;
         end;
         e_chainShape: ;
@@ -1036,6 +1038,18 @@ begin
   FSndPlayer.Listener3DPos := lPos;
 
   FSpawnManager.UpdateState;
+end;
+
+procedure TWorld.PlaySound(const AName: String; const APos: TVec2; const AVel: TVec2);
+var s: ISoundStream3D;
+    spos: TSoundPos;
+begin
+  s := FSndPlayer.GetStream3D('Sounds\'+AName+'.wav');
+  spos.Pos := Vec(APos, 0);
+  spos.Dir := Vec(0,0,0);
+  spos.Vel := Vec(AVel,0);
+  s.Pos3D := spos;
+  s.Play();
 end;
 
 procedure TWorld.ProcessToDestroy;

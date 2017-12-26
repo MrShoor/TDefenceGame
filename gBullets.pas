@@ -281,18 +281,18 @@ end;
 procedure TSimpleGun.AfterConstruction;
 var
   res: TGameResource;
-  size: TVec2;
+  lsize: TVec2;
 begin
   inherited;
   res.Clear;
   SetLength(res.images, 1);
-  res.images[0] := World.GetCommonTextures.BulletTrace;
-  size := Vec(res.images[0].Data.Width, res.images[0].Data.Height) / 80;
+  res.images[0] := World.GetCommonTextures^.BulletTrace;
+  lsize := Vec(res.images[0].Data.Width, res.images[0].Data.Height) / 80;
   res.tris := TSpineExVertices.Create;
-  Draw_Sprite(res.tris, Vec(-size.x*0.5+size.y,0), Vec(1,0), size, res.images[0]);
-  //Draw_Sprite(res.tris, Vec(0,0), Vec(1,0), size, res.images[0]);
+  Draw_Sprite(res.tris, Vec(-lsize.x*0.5+lsize.y,0), Vec(1,0), lsize, res.images[0]);
+  //Draw_Sprite(res.tris, Vec(0,0), Vec(1,0), lsize, res.images[0]);
   SetLength(res.fixtures_cir, 1);
-  res.fixtures_cir[0] := Vec(0,0,size.y*0.5);
+  res.fixtures_cir[0] := Vec(0,0,lsize.y*0.5);
   SetResource(res);
 end;
 
@@ -337,7 +337,7 @@ begin
 end;
 
 procedure TSimpleGun.OnHit(const AFixture, ThisFixture: Tb2Fixture; const AManifold: Tb2WorldManifold);
-const BULLET_MAX_DMG = 4;
+const BULLET_MAX_DMG = 2;
 var
   hittedBody: TGameBody;
   unt: TUnit;
@@ -393,7 +393,7 @@ var sprite: ISpriteIndex;
     i: Integer;
 begin
   inherited;
-  sprite := World.GetCommonTextures.WhitePix;
+  sprite := World.GetCommonTextures^.WhitePix;
   for i := 0 to FRayPoints.Count - 2 do
     Draw_Line(ASpineVertices, sprite, FRayPoints[i], FRayPoints[i+1], 0.1, FLightingColor);
 end;
@@ -525,18 +525,18 @@ end;
 procedure TGrenade.AfterConstruction;
 var
   res: TGameResource;
-  size: TVec2;
+  lsize: TVec2;
 begin
   inherited;
   res.Clear;
   SetLength(res.images, 1);
-  res.images[0] := World.GetCommonTextures.Grenade;
-  size := Vec(res.images[0].Data.Width, res.images[0].Data.Height) / 80;
+  res.images[0] := World.GetCommonTextures^.Grenade;
+  lsize := Vec(res.images[0].Data.Width, res.images[0].Data.Height) / 80;
   res.tris := TSpineExVertices.Create;
-  Draw_Sprite(res.tris, Vec(0,0), Vec(1,0), size, res.images[0]);
-  //Draw_Sprite(res.tris, Vec(0,0), Vec(1,0), size, res.images[0]);
+  Draw_Sprite(res.tris, Vec(0,0), Vec(1,0), lsize, res.images[0]);
+  //Draw_Sprite(res.tris, Vec(0,0), Vec(1,0), lsize, res.images[0]);
   SetLength(res.fixtures_cir, 1);
-  res.fixtures_cir[0] := Vec(0,0,size.y*0.5);
+  res.fixtures_cir[0] := Vec(0,0,lsize.y*0.5);
   SetResource(res);
 end;
 

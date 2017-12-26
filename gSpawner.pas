@@ -16,6 +16,7 @@ type
   private
     FFinishSpawnTime: Int64;
     FActive: Boolean;
+    FSpawned: Boolean;
   protected
     FOriginalResource: TGameResource;
     procedure UpdateStep; override;
@@ -89,9 +90,10 @@ var bot: TGameObject;
 begin
   if not FActive then Exit;
   inherited;
-  if FFinishSpawnTime < World.Time then
+  if (FFinishSpawnTime < World.Time) and (not FSpawned) then
   begin
     World.SafeDestroy(Self);
+    FSpawned := True;
 
     bot := GetBotClass.Create(World);
     bot.SetResource(FOriginalResource);

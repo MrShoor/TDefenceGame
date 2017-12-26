@@ -19,4 +19,11 @@ object frmMain: TfrmMain
     left = 224
     top = 40
   end
+  object RestartTimer: TTimer
+    Enabled = False
+    Interval = 1
+    OnTimer = RestartTimerTimer
+    left = 325
+    top = 40
+  end
 end

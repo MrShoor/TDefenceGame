@@ -144,6 +144,7 @@ uses Math, avTexLoader;
 
 procedure TfrmMain.FormCreate(Sender: TObject);
 begin
+  SetCurrentDir(ExtractFilePath(ParamStr(0)));
   Init;
 end;
 
@@ -294,6 +295,9 @@ var rot, acc: Single;
 begin
   if GetForegroundWindow <> Handle then Exit;
 
+  if FGameInput.RestartLevel then
+    RestartTimer.Enabled := True;
+
   tank := PlayerTank;
   if tank = nil then Exit;
   if tank.IsDead then
@@ -320,9 +324,6 @@ begin
     tank.TowerTargetAt(intpt.xy);
 
   if FGameInput.Shoot then tank.Fire();
-
-  if FGameInput.RestartLevel then
-    RestartTimer.Enabled := True;
 end;
 
 procedure TfrmMain.RenderScene;
@@ -454,7 +455,10 @@ begin
   for i := 0 to StepsCount - 1 do
   begin
     ProcessInput;
-    FWorld.UpdateStep(Vec(0,0));
+    if PlayerTank <> nil then
+      FWorld.UpdateStep(PlayerTank.Pos)
+    else
+      FWorld.UpdateStep(Vec(0,0));
   end;
 
   FLastTime := FLastTime + PHYS_STEP * StepsCount;

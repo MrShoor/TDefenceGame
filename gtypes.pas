@@ -15,7 +15,7 @@ uses
   SpineIntf;
 
 const
-  SHADERS_FROMRES = False;
+  SHADERS_FROMRES = True;
   SHADERS_DIR = 'D:\Projects\TDefenceGame\TDefenceGame_Shaders\!Out';
 
 type

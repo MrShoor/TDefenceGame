@@ -57,7 +57,7 @@ begin
       Draw_UI_Str(ASpineVertices, str, basePos, Vec(1, 1), Vec(0,1,0,1));
 
       basePos.y := basePos.y - 180;
-      Draw_UI_Symbol(ASpineVertices, World.GetCommonTextures.ctree, basePos+Vec(50, 0), Vec(1,1), Vec(1,1,1,1));
+      Draw_UI_Symbol(ASpineVertices, World.GetCommonTextures^.ctree, basePos+Vec(50, 0), Vec(1,1), Vec(1,1,1,1));
 
       basePos.y := basePos.y - 180;
       str := World.ObtainGlyphs('Нажми R для рестрата', 'Arial', 32);

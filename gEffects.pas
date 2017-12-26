@@ -63,6 +63,8 @@ begin
   FExplosionScale := 1;
 
   SubscribeForUpdateStep;
+
+  World.PlaySound('rocket_bang', Pos, Vec(0,0));
 end;
 
 procedure TExplosion.DrawLightSources(const ALights: ILightInfoArr);
