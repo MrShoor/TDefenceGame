@@ -22,6 +22,7 @@ type
     procedure SetPlayer(const Value: TUnit);
   protected
     function Filter_ExcludeUnits(const AObj: TGameBody): Boolean;
+    function Filter_ForMovement(const AObj: TGameBody): Boolean;
     function Filter_ForShooting(const AObj: TGameBody): Boolean;
   protected
     FMoveTarget: TVec2;
@@ -47,6 +48,8 @@ type
     function GetMaxMoveSpeed: TVec2; override;
     function GetReloadDuration: Integer; override;
     procedure DoFire(); override;
+
+    function GetDropClass: TGameObjectClass; virtual;
   public
     procedure AfterConstruction; override;
     destructor Destroy; override;
@@ -55,6 +58,7 @@ type
   TPowerBot = class(TStupidBot)
   protected
     function GetMaxMoveSpeed: TVec2; override;
+    function GetDropClass: TGameObjectClass; override;
   public
     procedure AfterConstruction; override;
   end;
@@ -116,6 +120,11 @@ begin
   Result := not (AObj is TUnit);
 end;
 
+function TBotTank.Filter_ForMovement(const AObj: TGameBody): Boolean;
+begin
+  Result := True;//not (AObj is TTowerTank);
+end;
+
 function TBotTank.Filter_ForShooting(const AObj: TGameBody): Boolean;
 begin
   if AObj = Self then Exit(False);
@@ -155,9 +164,9 @@ procedure TBotTank.UpdateStep;
       dummy: TVec2;
   begin
     d := normalize(FMoveTarget - Pos);
-    if World.RayCast(Pos, Pos + d * 2, dummy, {$IfDef FPC}@{$EndIf}Filter_ExcludeUnits)<>nil then Exit(False);
-    if World.RayCast(Pos, Pos + Rotate(d,  0.28) * 2, dummy, {$IfDef FPC}@{$EndIf}Filter_ExcludeUnits)<>nil then Exit(False);
-    if World.RayCast(Pos, Pos + Rotate(d, -0.28) * 2, dummy, {$IfDef FPC}@{$EndIf}Filter_ExcludeUnits)<>nil then Exit(False);
+    if World.RayCast(Pos, Pos + d * 2, dummy, {$IfDef FPC}@{$EndIf}Filter_ForMovement)<>nil then Exit(False);
+    if World.RayCast(Pos, Pos + Rotate(d,  0.33) * 2, dummy, {$IfDef FPC}@{$EndIf}Filter_ForMovement)<>nil then Exit(False);
+    if World.RayCast(Pos, Pos + Rotate(d, -0.33) * 2, dummy, {$IfDef FPC}@{$EndIf}Filter_ForMovement)<>nil then Exit(False);
     Result := True;
   end;
 
@@ -182,7 +191,7 @@ procedure TBotTank.UpdateStep;
         Result.y := (BOUNDS_Y - Result.y) + (BOUNDS_Y);
 //      Result.x := Clamp(Result.x, -23, 23);
 //      Result.y := Clamp(Result.y, -14, 14);
-      if World.RayCast(Pos, Result, dummy, {$IfDef FPC}@{$EndIf}Filter_ExcludeUnits) = nil then Exit;
+      if World.RayCast(Pos, Result, dummy, {$IfDef FPC}@{$EndIf}Filter_ForMovement) = nil then Exit;
     end;
   end;
 
@@ -259,7 +268,7 @@ end;
 procedure TStupidBot.AfterConstruction;
 begin
   inherited;
-  MaxHP := 60;
+  MaxHP := 30;
   HP := MaxHP;
 end;
 
@@ -269,7 +278,7 @@ begin
   if not World.InDestroy then
   begin
     case Random(DEF_DROP_CHANCE) of
-      0: item := TPickItem_Canon_RocketMini.Create(World);
+      0: item := TPickItem(GetDropClass.Create(World));
     else
       item := nil;
     end;
@@ -282,6 +291,11 @@ procedure TStupidBot.DoFire;
 begin
   inherited;
   ShootWithRocket(FPowerRocket);
+end;
+
+function TStupidBot.GetDropClass: TGameObjectClass;
+begin
+  Result := TPickItem_Canon_RocketMini;
 end;
 
 function TStupidBot.GetMaxMoveSpeed: TVec2;
@@ -298,7 +312,7 @@ function TStupidBot.PredictTargetForShooting(const AUnit: TUnit): TVec2;
 var k: Single;
 begin
   k := Len(AUnit.Pos - Pos)/50;
-  Result := AUnit.Pos + (AUnit.Velocity - Velocity) * k;
+  Result := AUnit.Pos + (AUnit.Velocity {- Velocity}) * k;
 end;
 
 { TTeslaBot }
@@ -306,7 +320,7 @@ end;
 procedure TTeslaBot.AfterConstruction;
 begin
   inherited;
-  MaxHP := 40;
+  MaxHP := 20;
   HP := MaxHP;
 end;
 
@@ -356,7 +370,7 @@ end;
 procedure TMiniBot.AfterConstruction;
 begin
   inherited;
-  MaxHP := 50;
+  MaxHP := 20;
   HP := MaxHP;
 end;
 
@@ -409,8 +423,13 @@ procedure TPowerBot.AfterConstruction;
 begin
   inherited;
   FPowerRocket := True;
-  MaxHP := 100;
+  MaxHP := 50;
   HP := MaxHP;
+end;
+
+function TPowerBot.GetDropClass: TGameObjectClass;
+begin
+  Result := TPickItem_Canon_Rocket;
 end;
 
 function TPowerBot.GetMaxMoveSpeed: TVec2;

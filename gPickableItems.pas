@@ -180,7 +180,7 @@ procedure TPickItem_HP.OnTankHit(const AUnit: TTowerTank);
 begin
   if AUnit.HP < AUnit.MaxHP then
   begin
-    AUnit.HP := Min(AUnit.HP + 50, AUnit.MaxHP);
+    AUnit.HP := Min(AUnit.HP + 150, AUnit.MaxHP);
     World.SafeDestroy(Self);
   end;
 end;

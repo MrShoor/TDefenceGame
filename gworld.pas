@@ -51,6 +51,8 @@ type
 
     property World: TWorld read FWorld;
   public
+    procedure LoadingComplete(); virtual;
+
     property Name  : string read FName write FName;
     property Layer : TGameLayer read FLayer write FLayer;
     property ZIndex: Integer read FZIndex write FZIndex;
@@ -196,6 +198,8 @@ type
     FWorld : TWorld;
     FSpawners: ISpawnHeap;
 
+    FNextSpawnTime: Int64;
+
     function IsReadyForSpawnNext: Boolean;
   public
     function  Count: Integer;
@@ -209,8 +213,8 @@ type
   TSpawnObject = class(TGameObject)
   private
   public
+    procedure LoadingComplete(); override;
     procedure Spawn(); virtual; abstract;
-    procedure AfterConstruction; override;
   end;
 
   TSpawnObjectSprite = class(TSpawnObject)
@@ -1026,6 +1030,8 @@ begin
   lPos.Front := Vec(0, 0, 1);
   lPos.Top := Vec(0, 1, 0);
   FSndPlayer.Listener3DPos := lPos;
+
+  FSpawnManager.UpdateState;
 end;
 
 procedure TWorld.ProcessToDestroy;
@@ -1195,8 +1201,13 @@ begin
 end;
 
 function TWorld.EnemiesCount: Integer;
+var go: TGameObject;
 begin
-
+  Result := 0;
+  FObjects.Reset;
+  while FObjects.Next(go) do
+    if (go is TTowerTank) and not(go is TPlayer) then
+      Inc(Result);
 end;
 
 { TGameObject }
@@ -1242,6 +1253,11 @@ end;
 function TGameObject.HasSpineTris: Boolean;
 begin
   Result := ((FRes.tris <> nil) and (FRes.tris.Count > 0)) or (FRes.spine <> nil);
+end;
+
+procedure TGameObject.LoadingComplete;
+begin
+
 end;
 
 procedure TGameObject.Draw(const ASpineVertices: ISpineExVertices);
@@ -1389,7 +1405,7 @@ end;
 
 { TSpawnObject }
 
-procedure TSpawnObject.AfterConstruction;
+procedure TSpawnObject.LoadingComplete;
 begin
   inherited;
   World.SpawnManager.Add(Self);
@@ -1417,7 +1433,7 @@ end;
 
 function TSpawnManager.IsReadyForSpawnNext: Boolean;
 begin
-  Result := (FWorld.EnemiesCount < 4) and (FSpawners.Count > 0);
+  Result := (FNextSpawnTime < FWorld.Time) and (FWorld.EnemiesCount < 3) and (FSpawners.Count > 0);
 end;
 
 procedure TSpawnManager.UpdateState;
@@ -1427,6 +1443,7 @@ begin
   begin
     spawn := FSpawners.ExtractTop;
     spawn.Spawn();
+    FNextSpawnTime := FWorld.Time + 5000;
   end;
 end;
 
@@ -1490,4 +1507,3 @@ begin
 end;
 
 end.
-

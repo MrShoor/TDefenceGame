@@ -447,6 +447,7 @@ begin
     gobj := LoadItem(sarr[i], AWorld, ALayer, AImages);
     gobj.Layer := ALayer;
     gobj.ZIndex := i;
+    gobj.LoadingComplete();
   end;
 end;
 

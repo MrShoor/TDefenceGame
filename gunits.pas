@@ -247,7 +247,7 @@ begin
 
   fireDir := Normalize(FTarget-Pos);
   firePos := Vec(FFireBones[FFireIdx]^.WorldX, FFireBones[FFireIdx]^.WorldY) * GetTransform;
-  bullet.SetDefaultState(firePos, FTarget, fireDir, fireDir*4 + Velocity);
+  bullet.SetDefaultState(firePos, FTarget, fireDir, fireDir*6{ + Velocity});
 
   Inc(FFireIdx);
   if FFireIdx >= Length(FFireBones) then FFireIdx := 0;
@@ -405,7 +405,7 @@ end;
 procedure TPlayer.AfterConstruction;
 begin
   inherited AfterConstruction;
-  FMaxHP := 100;
+  FMaxHP := 300;
   FHP := FMaxHP;
   FIsPlayer := True;
 end;
@@ -636,7 +636,7 @@ end;
 procedure TBox.AfterConstruction;
 begin
   inherited;
-  MaxHP := 75;
+  MaxHP := 50;
   HP := MaxHP;
 end;
 
@@ -685,12 +685,13 @@ end;
 procedure TBox2.AfterConstruction;
 begin
   inherited;
-  MaxHP := 25;
+  MaxHP := 20;
   HP := MaxHP;
 end;
 
 initialization
   RegClass(TPlayer);
   RegClass(TBox);
+  RegClass(TBox2);
 
 end.
