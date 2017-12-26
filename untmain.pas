@@ -32,7 +32,7 @@ uses
   {$IfDef DCC}
   AppEvnts,
   {$EndIf}
-  gTypes, gWorld, gLightRenderer, gLevelLoader, gUnits,
+  gTypes, gWorld, gLightRenderer, gLevelLoader, gUnits, gLevelResults,
   avRes, avTypes,
   intfUtils,
   mutils;
@@ -63,6 +63,7 @@ type
     ApplicationEvents1: TApplicationEvents;
     {$EndIf}
     FPSTimer: TTimer;
+    RestartTimer: TTimer;
     procedure ApplicationProperties1Idle(Sender: TObject; var Done: Boolean);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
@@ -72,6 +73,7 @@ type
       Shift: TShiftState; X, Y: Integer);
     procedure FormMouseMove(Sender: TObject; Shift: TShiftState; X,
       Y: Integer);
+    procedure RestartTimerTimer(Sender: TObject);
   private
     FGameInput: TGameInput;
     FMain     : TavMainRender;
@@ -101,6 +103,9 @@ type
     FLastTime : Int64;
 
     FPlayerTank: IWeakRef;
+
+    FLevelResults: TLevelResults;
+
     function GetPlayerTank: TTowerTank;
     procedure SetPlayerTank(const Value: TTowerTank);
   {$IfDef FPC}
@@ -277,6 +282,8 @@ begin
   FWorld := TWorld.Create(FAtlas);
   TLevelLoader.LoadLevel(ExpandFileName('Levels\Level0.flat'), FWorld);
   PlayerTank := FWorld.FindPlayerObject as TTowerTank;
+
+  FLevelResults := TLevelResults.Create(FWorld);
 end;
 
 procedure TfrmMain.ProcessInput;
@@ -289,7 +296,13 @@ begin
 
   tank := PlayerTank;
   if tank = nil then Exit;
-  if tank.IsDead then Exit;
+  if tank.IsDead then
+  begin
+    FLevelResults.LevelResult := lrsFail;
+    Exit;
+  end;
+  if (FWorld.EnemiesCount = 0) and (FWorld.SpawnManager.Count = 0) then
+    FLevelResults.LevelResult := lrsDone;
 
   rot := 0;
   acc := 0;
@@ -307,6 +320,9 @@ begin
     tank.TowerTargetAt(intpt.xy);
 
   if FGameInput.Shoot then tank.Fire();
+
+  if FGameInput.RestartLevel then
+    RestartTimer.Enabled := True;
 end;
 
 procedure TfrmMain.RenderScene;
@@ -412,6 +428,12 @@ begin
     FMain.Unbind;
     Inc(FFPSCounter);
   end;
+end;
+
+procedure TfrmMain.RestartTimerTimer(Sender: TObject);
+begin
+  RestartTimer.Enabled := False;
+  BuildLevel;
 end;
 
 procedure TfrmMain.SetPlayerTank(const Value: TTowerTank);

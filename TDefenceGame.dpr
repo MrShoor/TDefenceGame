@@ -21,7 +21,8 @@ uses
   gLightRenderer in 'gLightRenderer.pas',
   gBots in 'gBots.pas',
   gPickableItems in 'gPickableItems.pas',
-  gSpawner in 'gSpawner.pas';
+  gSpawner in 'gSpawner.pas',
+  gLevelResults in 'gLevelResults.pas';
 
 {$R *.res}
 

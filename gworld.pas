@@ -252,6 +252,8 @@ type
     canon_rocket   : ISpriteIndex;
     canon_tesla    : ISpriteIndex;
     canon_grenades : ISpriteIndex;
+
+    ctree: ISpriteIndex;
     procedure Load(const AAtlas: TavAtlasArrayReferenced);
   end;
   PWorldCommonTextures = ^TWorldCommonTextures;
@@ -900,6 +902,8 @@ begin
   canon_rocket := AAtlas.ObtainSprite(Default_ITextureManager.LoadTexture('HG\canon_rocket.png').MipData(0,0));
   canon_tesla := AAtlas.ObtainSprite(Default_ITextureManager.LoadTexture('HG\canon_tesla.png').MipData(0,0));
   canon_grenades := AAtlas.ObtainSprite(Default_ITextureManager.LoadTexture('HG\canon_grenades.png').MipData(0,0));
+
+  ctree := AAtlas.ObtainSprite(Default_ITextureManager.LoadTexture('HG\ctree.png').MipData(0,0));
 end;
 
 { TWorld.TRaycastCallback }

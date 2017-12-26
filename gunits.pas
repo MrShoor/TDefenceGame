@@ -405,7 +405,7 @@ end;
 procedure TPlayer.AfterConstruction;
 begin
   inherited AfterConstruction;
-  FMaxHP := 300;
+  FMaxHP := 3;
   FHP := FMaxHP;
   FIsPlayer := True;
 end;
