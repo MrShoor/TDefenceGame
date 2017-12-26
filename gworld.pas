@@ -1169,6 +1169,8 @@ begin
 end;
 
 constructor TWorld.Create(const AAtlas: TavAtlasArrayReferenced);
+var backSound: ISoundStream;
+    backPos: TSoundPos;
 begin
   FAtlas := AAtlas;
 
@@ -1191,6 +1193,9 @@ begin
   FGlyphsCache := TGlypsCache.Create(FAtlas);
 
   FSpawnManager := TSpawnManager.Create(Self);
+
+  backSound := FSndPlayer.GetStream('Sounds\insekt001.mp3');
+  backSound.Play(True);
 end;
 
 destructor TWorld.Destroy;

@@ -125,7 +125,6 @@
             <MainSource>MainSource</MainSource>
         </DelphiCompile>
         <RcCompile Include="TDefenceGame_Shaders\shaders.rc">
-            <ModuleName>shaders.rc</ModuleName>
             <Form>shaders.res</Form>
         </RcCompile>
         <DCCReference Include="untmain.pas">
