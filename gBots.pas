@@ -3,7 +3,6 @@ unit gBots;
 interface
 
 uses
-  Windows,
   Classes, SysUtils,
   gWorld, gTypes, gBullets, gUnits,
   UPhysics2D, UPhysics2DTypes,
@@ -11,6 +10,9 @@ uses
   mutils,
   SpineH,
   intfUtils;
+
+const
+  DEF_DROP_CHANCE = 1;
 
 type
   TBotTank = class(TTowerTank)
@@ -39,6 +41,7 @@ type
   TStupidBot = class(TBotTank)
   private
   protected
+    FPowerRocket: Boolean;
     function PredictTargetForShooting(const AUnit: TUnit): TVec2; override;
 
     function GetMaxMoveSpeed: TVec2; override;
@@ -50,7 +53,10 @@ type
   end;
 
   TPowerBot = class(TStupidBot)
-
+  protected
+    function GetMaxMoveSpeed: TVec2; override;
+  public
+    procedure AfterConstruction; override;
   end;
 
   TTeslaBot = class(TBotTank)
@@ -262,7 +268,7 @@ var item: TPickItem;
 begin
   if not World.InDestroy then
   begin
-    case Random(3) of
+    case Random(DEF_DROP_CHANCE) of
       0: item := TPickItem_Canon_RocketMini.Create(World);
     else
       item := nil;
@@ -275,7 +281,7 @@ end;
 procedure TStupidBot.DoFire;
 begin
   inherited;
-  ShootWithRocket(False);
+  ShootWithRocket(FPowerRocket);
 end;
 
 function TStupidBot.GetMaxMoveSpeed: TVec2;
@@ -314,7 +320,7 @@ var item: TPickItem;
 begin
   if not World.InDestroy then
   begin
-    case Random(3) of
+    case Random(DEF_DROP_CHANCE) of
       0: item := TPickItem_Canon_RocketMini.Create(World);
     else
       item := nil;
@@ -364,7 +370,7 @@ var item: TPickItem;
 begin
   if not World.InDestroy then
   begin
-    case Random(1) of
+    case Random(DEF_DROP_CHANCE) of
       0: item := TPickItem_Canon_RocketMini.Create(World);
     else
       item := nil;
@@ -395,6 +401,21 @@ var k: Single;
 begin
   k := Len(AUnit.Pos - Pos)/50;
   Result := AUnit.Pos + (AUnit.Velocity - Velocity) * k;
+end;
+
+{ TPowerBot }
+
+procedure TPowerBot.AfterConstruction;
+begin
+  inherited;
+  FPowerRocket := True;
+  MaxHP := 100;
+  HP := MaxHP;
+end;
+
+function TPowerBot.GetMaxMoveSpeed: TVec2;
+begin
+  Result := Vec(50,50);
 end;
 
 initialization

@@ -20,7 +20,8 @@ uses
   gEffects in 'gEffects.pas',
   gLightRenderer in 'gLightRenderer.pas',
   gBots in 'gBots.pas',
-  gPickableItems in 'gPickableItems.pas';
+  gPickableItems in 'gPickableItems.pas',
+  gSpawner in 'gSpawner.pas';
 
 {$R *.res}
 

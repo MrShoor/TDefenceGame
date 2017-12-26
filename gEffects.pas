@@ -119,7 +119,7 @@ begin
   k := k * k;
 
   ls.LightKind := 0;
-  ls.LightPos := Pos;
+  ls.LightPos := Pos + Vec(Random, Random)*0.3;
   ls.LightDist := 10;
   ls.LightColor := Vec(0.988235294117647, 0.792156862745098, 0.0117647058823529, 1.0)*k;
   ALights.Add(ls);

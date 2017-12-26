@@ -48,6 +48,8 @@ type
   protected
     procedure OnHit(const AFixture: Tb2Fixture; const ThisFixture: Tb2Fixture; const AManifold: Tb2WorldManifold); override;
   public
+    function GetTransform(): TMat3;
+
     property  ExtraPower: Boolean read FExtraPower write FExtraPower;
     procedure DrawLightSources(const ALights: ILightInfoArr); override;
 
@@ -174,6 +176,14 @@ end;
 function TRocket.GetLiveTime: Integer;
 begin
   Result := 4000;
+end;
+
+function TRocket.GetTransform: TMat3;
+begin
+  if FExtraPower then
+    Result := Mat3(Vec(2,2),0,Vec(0,0)) * inherited GetTransform()
+  else
+    Result := inherited GetTransform();
 end;
 
 procedure TRocket.OnHit(const AFixture, ThisFixture: Tb2Fixture; const AManifold: Tb2WorldManifold);
@@ -327,7 +337,7 @@ begin
 end;
 
 procedure TSimpleGun.OnHit(const AFixture, ThisFixture: Tb2Fixture; const AManifold: Tb2WorldManifold);
-const BULLET_MAX_DMG = 5;
+const BULLET_MAX_DMG = 4;
 var
   hittedBody: TGameBody;
   unt: TUnit;

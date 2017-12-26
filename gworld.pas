@@ -181,6 +181,57 @@ type
     property Velocity: TVec2 read GetVelocity write SetVelocity;
   end;
 
+  TSpawnObject = class;
+
+  TSpawnManager = class(TObject)
+  private type
+    TPriorityComparer = class(TInterfacedObject, IComparer)
+    private
+      function Compare(const Left, Right): Integer;
+    end;
+
+    ISpawnHeap = {$IfDef FPC}specialize{$EndIf} IHeap<TSpawnObject>;
+    TSpawnHeap = {$IfDef FPC}specialize{$EndIf} THeap<TSpawnObject>;
+  private
+    FWorld : TWorld;
+    FSpawners: ISpawnHeap;
+
+    function IsReadyForSpawnNext: Boolean;
+  public
+    function  Count: Integer;
+
+    procedure UpdateState;
+    procedure Add(const AObj: TSpawnObject);
+
+    constructor Create(const AWorld: TWorld);
+  end;
+
+  TSpawnObject = class(TGameObject)
+  private
+  public
+    procedure Spawn(); virtual; abstract;
+    procedure AfterConstruction; override;
+  end;
+
+  TSpawnObjectSprite = class(TSpawnObject)
+  protected
+    FAngle: Single;
+    FPos  : TVec2;
+    FSize : TVec2;
+
+    function GetAngle: Single; override;
+    function GetDir: TVec2; override;
+    function GetPos: TVec2; override;
+    function GetSize: TVec2; override;
+
+    procedure SetAngle(const Value: Single); override;
+    procedure SetDir(const Value: TVec2); override;
+    procedure SetPos(const Value: TVec2); override;
+    procedure SetSize(const Value: TVec2); override;
+  public
+    procedure AfterConstruction; override;
+  end;
+
   { TWorldCommonTextures }
 
   TWorldCommonTextures = packed record
@@ -192,6 +243,7 @@ type
     speed    : ISpriteIndex;
     firerate : ISpriteIndex;
 
+    canon_machinegun : ISpriteIndex;
     canon_rocket_mini : ISpriteIndex;
     canon_rocket   : ISpriteIndex;
     canon_tesla    : ISpriteIndex;
@@ -283,6 +335,7 @@ type
     FAtlas: TavAtlasArrayReferenced;
     FCommonTextures: TWorldCommonTextures;
     FGlyphsCache: TGlypsCache;
+    FSpawnManager: TSpawnManager;
 
     FInDestroy: Boolean;
   public
@@ -291,6 +344,9 @@ type
     function Time: Int64;
     function FindPlayerObject: TGameObject;
     function GetCommonTextures: PWorldCommonTextures;
+    property SpawnManager: TSpawnManager read FSpawnManager;
+
+    function EnemiesCount: Integer;
 
     property Atlas: TavAtlasArrayReferenced read FAtlas;
 
@@ -317,7 +373,8 @@ procedure Draw_Line  (const AVert: ISpineExVertices; const APattern: ISpriteInde
 procedure Draw_Rect  (const AVert: ISpineExVertices; const APattern: ISpriteIndex; const pt1, pt2, pt3, pt4: TVec2; width: Single; const color: TVec4); overload;
 procedure Draw_Rect  (const AVert: ISpineExVertices; const APattern: ISpriteIndex; const pos, dir, size: TVec2; width: Single; const color: TVec4); overload;
 
-procedure Draw_UI_Text(const AVert: ISpineExVertices; const ASymbols: ISpriteIndexArr; const APos: TVec2; const color: TVec4);
+procedure Draw_UI_Symbol(const AVert: ISpineExVertices; const ASymbol: ISpriteIndex; const APos: TVec2; const AScale: TVec2; const color: TVec4);
+procedure Draw_UI_Str(const AVert: ISpineExVertices; const ASymbols: ISpriteIndexArr; const APos: TVec2; const AScale: TVec2; const color: TVec4);
 
 implementation
 
@@ -416,7 +473,20 @@ begin
   Draw_Rect(AVert, APattern, pts[0], pts[1], pts[2], pts[3], width, color);
 end;
 
-procedure Draw_UI_Text(const AVert: ISpineExVertices; const ASymbols: ISpriteIndexArr; const APos: TVec2; const color: TVec4);
+procedure Draw_UI_Symbol(const AVert: ISpineExVertices; const ASymbol: ISpriteIndex; const APos: TVec2; const AScale: TVec2; const color: TVec4);
+var i: Integer;
+    s, p: TVec2;
+begin
+  if ASymbol = nil then Exit;
+  p := APos;
+  s.x := ASymbol.Data.Width;
+  s.y := ASymbol.Data.Height;
+  s := s * AScale;
+  p.x := p.x + s.x * 0.5;
+  Draw_Sprite(AVert, p, Vec(1,0), s, ASymbol, @color);
+end;
+
+procedure Draw_UI_Str(const AVert: ISpineExVertices; const ASymbols: ISpriteIndexArr; const APos: TVec2; const AScale: TVec2; const color: TVec4);
 var i: Integer;
     s, p: TVec2;
 begin
@@ -426,6 +496,7 @@ begin
   begin
     s.x := ASymbols[i].Data.Width;
     s.y := ASymbols[i].Data.Height;
+    s := s * AScale;
     p.x := p.x + s.x * 0.5;
     Draw_Sprite(AVert, p, Vec(1,0), s, ASymbols[i], @color);
     p.x := p.x + s.x * 0.5;
@@ -820,6 +891,7 @@ begin
   speed := AAtlas.ObtainSprite(Default_ITextureManager.LoadTexture('HG\speed.png').MipData(0,0));
   firerate := AAtlas.ObtainSprite(Default_ITextureManager.LoadTexture('HG\firerate.png').MipData(0,0));
 
+  canon_machinegun := AAtlas.ObtainSprite(Default_ITextureManager.LoadTexture('HG\machinegun.png').MipData(0,0));
   canon_rocket_mini := AAtlas.ObtainSprite(Default_ITextureManager.LoadTexture('HG\canon_rocket_mini.png').MipData(0,0));
   canon_rocket := AAtlas.ObtainSprite(Default_ITextureManager.LoadTexture('HG\canon_rocket.png').MipData(0,0));
   canon_tesla := AAtlas.ObtainSprite(Default_ITextureManager.LoadTexture('HG\canon_tesla.png').MipData(0,0));
@@ -1093,6 +1165,8 @@ begin
   FCommonTextures.Load(FAtlas);
 
   FGlyphsCache := TGlypsCache.Create(FAtlas);
+
+  FSpawnManager := TSpawnManager.Create(Self);
 end;
 
 destructor TWorld.Destroy;
@@ -1102,6 +1176,7 @@ begin
   FInDestroy := True;
   FSndPlayer := nil;
 
+  FreeAndNil(FSpawnManager);
   FreeAndNil(FGlyphsCache);
   FreeAndNil(FRayCaster);
   FreeAndNil(FTreeQuery);
@@ -1117,6 +1192,11 @@ begin
 
   Fb2World.Free;
   inherited Destroy;
+end;
+
+function TWorld.EnemiesCount: Integer;
+begin
+
 end;
 
 { TGameObject }
@@ -1305,6 +1385,108 @@ function TGlypsCache.RenderGlyph(const AGlyph: WideChar; const AFont: string; co
 var ABCMetrics: TVec3i;
 begin
   Result := GenerateGlyphImage(AFont, AGlyph, ASize, False, False, False, ABCMetrics);
+end;
+
+{ TSpawnObject }
+
+procedure TSpawnObject.AfterConstruction;
+begin
+  inherited;
+  World.SpawnManager.Add(Self);
+end;
+
+{ TSpawnManager }
+
+procedure TSpawnManager.Add(const AObj: TSpawnObject);
+begin
+  FSpawners.Insert(AObj);
+end;
+
+function TSpawnManager.Count: Integer;
+begin
+  Result := FSpawners.Count;
+end;
+
+constructor TSpawnManager.Create(const AWorld: TWorld);
+var c: IComparer;
+begin
+  FWorld := AWorld;
+  c := TPriorityComparer.Create;
+  FSpawners := TSpawnHeap.Create(10, c);
+end;
+
+function TSpawnManager.IsReadyForSpawnNext: Boolean;
+begin
+  Result := (FWorld.EnemiesCount < 4) and (FSpawners.Count > 0);
+end;
+
+procedure TSpawnManager.UpdateState;
+var spawn: TSpawnObject;
+begin
+  if IsReadyForSpawnNext() then
+  begin
+    spawn := FSpawners.ExtractTop;
+    spawn.Spawn();
+  end;
+end;
+
+{ TSpawnManager.TPriorityComparer }
+
+function TSpawnManager.TPriorityComparer.Compare(const Left,  Right): Integer;
+var L: TGameObject absolute Left;
+    R: TGameObject absolute Right;
+begin
+  Result := Ord(L.Layer) - Ord(R.Layer);
+  if Result <> 0 then Exit;
+  Result := L.ZIndex - R.ZIndex;
+end;
+
+{ TSpawnObjectSprite }
+
+procedure TSpawnObjectSprite.AfterConstruction;
+begin
+  inherited;
+  FSize := Vec(1,1);
+end;
+
+function TSpawnObjectSprite.GetAngle: Single;
+begin
+  Result := FAngle;
+end;
+
+function TSpawnObjectSprite.GetDir: TVec2;
+begin
+  Result := VecSinCos(FAngle);
+end;
+
+function TSpawnObjectSprite.GetPos: TVec2;
+begin
+  Result := FPos;
+end;
+
+function TSpawnObjectSprite.GetSize: TVec2;
+begin
+  Result := FSize;
+end;
+
+procedure TSpawnObjectSprite.SetAngle(const Value: Single);
+begin
+  FAngle := Value;
+end;
+
+procedure TSpawnObjectSprite.SetDir(const Value: TVec2);
+begin
+  FAngle := ArcTan2(Value.y, Value.x);
+end;
+
+procedure TSpawnObjectSprite.SetPos(const Value: TVec2);
+begin
+  FPos := Value;
+end;
+
+procedure TSpawnObjectSprite.SetSize(const Value: TVec2);
+begin
+  FSize := Value;
 end;
 
 end.

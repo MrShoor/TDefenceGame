@@ -104,7 +104,7 @@ type
     procedure RotateBy(AAngle: Single); virtual;
     procedure RotateAt(const ATarget: TVec2);
 
-    procedure Fire();
+    procedure Fire(); virtual;
 
     procedure AfterConstruction; override;
 
@@ -143,6 +143,8 @@ type
     procedure DrawUI(const ASpineVertices: ISpineExVertices); override;
   public
     procedure SetWeapon(const AWeapon: TPlayerWeapon);
+
+    procedure Fire(); override;
 
     procedure RotateBy(AAngle: Single); override;
 
@@ -412,10 +414,22 @@ procedure TPlayer.DoFire;
 begin
   case FActiveWeapon of
     pwMachineGun: ShootWithMachineGun();
-    pwRocket: ShootWithRocket(True);
-    pwMiniRocket: ShootWithRocket(False);
-    pwTesla: ShootWithTesla();
-    pwGrenade: ShootWithGrenade();
+    pwRocket: begin
+      ShootWithRocket(True);
+      Dec(FAmmo_Rocket);
+    end;
+    pwMiniRocket: begin
+      ShootWithRocket(False);
+      Dec(FAmmo_MiniRocket);
+    end;
+    pwTesla: begin
+      ShootWithTesla();
+      Dec(FAmmo_Tesla);
+    end;
+    pwGrenade: begin
+      ShootWithGrenade();
+      Dec(FAmmo_Grenade);
+    end;
   end;
   if FActiveWeapon <> pwTesla then
     if (FSpine <> nil) and (FSpine.SpineAnim <> nil) then FSpine.SpineAnim.SetAnimationByName(1, 'fire'+IntToStr(FFireIdx), false);
@@ -457,11 +471,82 @@ begin
 end;
 
 procedure TPlayer.DrawUI(const ASpineVertices: ISpineExVertices);
-var test: ISpriteIndexArr;
+var str: ISpriteIndexArr;
+    basePos: TVec2;
+    size: TVec2;
 begin
   inherited;
-  test := World.ObtainGlyphs('Test', 'Arial', 24);
-  Draw_UI_Text(ASpineVertices, test, Vec(50, 50), Vec(1,0,0,1));
+
+  size := Vec(350, 630);
+  Draw_UI_Symbol(ASpineVertices, World.GetCommonTextures.WhitePix, Vec(0,size.y*0.5), size, Vec(0,0,0,0.5));
+
+  basePos := Vec(50, 570);
+  if SpeedBoost > World.Time then
+  begin
+    Draw_UI_Symbol(ASpineVertices, World.GetCommonTextures.speed, basePos, Vec(1,1), Vec(1,1,1,1));
+    basePos.x := basePos.x + 40;
+  end;
+  if FireRateBoost > World.Time then
+    Draw_UI_Symbol(ASpineVertices, World.GetCommonTextures.firerate, basePos, Vec(1,1), Vec(1,1,1,1));
+
+  basePos := Vec(50, 470);
+  Draw_UI_Symbol(ASpineVertices, World.GetCommonTextures.hp, basePos+Vec(10, 0), Vec(1,1), Vec(1,1,1,1));
+  str := World.ObtainGlyphs(Format('%d/%d',[mutils.Ceil(HP), mutils.Ceil(MaxHP)]), 'Arial', 24);
+  Draw_UI_Str(ASpineVertices, str, basePos+Vec(110, 0), Vec(1, 1), Vec(1,1,1,1));
+
+  basePos := Vec(40, 370);
+  str := World.ObtainGlyphs('1', 'Arial', 24);
+  Draw_UI_Str(ASpineVertices, str, basePos, Vec(1, 1), Vec(1,1,1,1));
+  Draw_UI_Symbol(ASpineVertices, World.GetCommonTextures.canon_machinegun, basePos+Vec(50, 0), Vec(0.5,0.5), Vec(1,1,1,1));
+  str := World.ObtainGlyphs(WideChar(#$221E), 'Arial', 24);
+  Draw_UI_Str(ASpineVertices, str, basePos+Vec(150, 0), Vec(1, 1), Vec(1,0,0,1));
+
+  basePos := Vec(40, 300);
+  str := World.ObtainGlyphs('2', 'Arial', 24);
+  Draw_UI_Str(ASpineVertices, str, basePos, Vec(1, 1), Vec(1,1,1,1));
+  Draw_UI_Symbol(ASpineVertices, World.GetCommonTextures.canon_rocket_mini, basePos+Vec(50, 0), Vec(0.5,0.5), Vec(1,1,1,1));
+  str := World.ObtainGlyphs(IntToStr(Ammo_MiniRocket), 'Arial', 24);
+  Draw_UI_Str(ASpineVertices, str, basePos+Vec(150, 0), Vec(1, 1), Vec(1,0,0,1));
+
+  basePos := Vec(40, 230);
+  str := World.ObtainGlyphs('3', 'Arial', 24);
+  Draw_UI_Str(ASpineVertices, str, basePos, Vec(1, 1), Vec(1,1,1,1));
+  Draw_UI_Symbol(ASpineVertices, World.GetCommonTextures.canon_rocket, basePos+Vec(50, 0), Vec(0.5,0.5), Vec(1,1,1,1));
+  str := World.ObtainGlyphs(IntToStr(Ammo_Rocket), 'Arial', 24);
+  Draw_UI_Str(ASpineVertices, str, basePos+Vec(150, 0), Vec(1, 1), Vec(1,0,0,1));
+
+  basePos := Vec(40, 160);
+  str := World.ObtainGlyphs('4', 'Arial', 24);
+  Draw_UI_Str(ASpineVertices, str, basePos, Vec(1, 1), Vec(1,1,1,1));
+  Draw_UI_Symbol(ASpineVertices, World.GetCommonTextures.canon_tesla, basePos+Vec(50, 0), Vec(0.5,0.5), Vec(1,1,1,1));
+  str := World.ObtainGlyphs(IntToStr(Ammo_Tesla), 'Arial', 24);
+  Draw_UI_Str(ASpineVertices, str, basePos+Vec(150, 0), Vec(1, 1), Vec(1,0,0,1));
+
+  basePos := Vec(40, 90);
+  str := World.ObtainGlyphs('5', 'Arial', 24);
+  Draw_UI_Str(ASpineVertices, str, basePos, Vec(1, 1), Vec(1,1,1,1));
+  Draw_UI_Symbol(ASpineVertices, World.GetCommonTextures.canon_grenades, basePos+Vec(50, 0), Vec(0.5,0.5), Vec(1,1,1,1));
+  str := World.ObtainGlyphs(IntToStr(Ammo_Grenade), 'Arial', 24);
+  Draw_UI_Str(ASpineVertices, str, basePos+Vec(150, 0), Vec(1, 1), Vec(1,0,0,1));
+end;
+
+procedure TPlayer.Fire;
+var noAmmo: Boolean;
+begin
+  noAmmo := False;
+  case FActiveWeapon of
+    pwMachineGun: ;
+    pwRocket: noAmmo := Ammo_Rocket <= 0;
+    pwMiniRocket: noAmmo := Ammo_MiniRocket <= 0;
+    pwTesla: noAmmo := Ammo_Tesla <= 0;
+    pwGrenade: noAmmo := Ammo_Grenade <= 0;
+  end;
+  if noAmmo then
+  begin
+    SetWeapon(pwMachineGun);
+    Exit;
+  end;
+  inherited;
 end;
 
 function TPlayer.GetDefaultSkin: string;
@@ -499,6 +584,14 @@ end;
 
 procedure TPlayer.SetWeapon(const AWeapon: TPlayerWeapon);
 begin
+//  case AWeapon of
+//    pwMachineGun: ;
+//    pwRocket: if Ammo_Rocket <= 0 then Exit;
+//    pwMiniRocket: if Ammo_MiniRocket <= 0 then Exit;
+//    pwTesla: if Ammo_Tesla <= 0 then Exit;
+//    pwGrenade: if Ammo_Grenade <= 0 then Exit;
+//  end;
+
   FActiveWeapon := AWeapon;
   if (FSpine <> nil) and (FSpine.SpineSkel <> nil) then
     FSpine.SpineSkel.SetSkinByName(cPlayerSkinName[FActiveWeapon]);
