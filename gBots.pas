@@ -122,7 +122,7 @@ end;
 
 function TBotTank.Filter_ForMovement(const AObj: TGameBody): Boolean;
 begin
-  Result := True;//not (AObj is TTowerTank);
+  Result := AObj <> Self;//not (AObj is TTowerTank);
 end;
 
 function TBotTank.Filter_ForShooting(const AObj: TGameBody): Boolean;
