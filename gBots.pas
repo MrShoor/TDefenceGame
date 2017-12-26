@@ -12,7 +12,7 @@ uses
   intfUtils;
 
 const
-  DEF_DROP_CHANCE = 1;
+  DEF_DROP_CHANCE = 2;
 
 type
   TBotTank = class(TTowerTank)

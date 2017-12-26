@@ -19,7 +19,7 @@ uses
   BLight;
 
 const
-  cNO_BOX2DEBUG = False;
+  cNO_BOX2DEBUG = True;
   PHYS_STEP = 4;
 
 type
