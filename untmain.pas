@@ -81,7 +81,10 @@ type
     FProgramResolveHDR: TavProgram;
 
     FSpineProgram : TavProgram;
-    FSpineVB  : TavVB;
+    FSpineVB    : TavVB;
+    FSpineVB_UI : TavVB;
+
+    FSpineVB_UI_Data: ISpineExVertices;
 
     FRenderBatches : IRenderBatchArr;
     FLights        : ILightInfoArr;
@@ -229,6 +232,13 @@ begin
   FSpineVB.CullMode := cmNone;
   FSpineVB.PrimType := ptTriangles;
 
+  FSpineVB_UI_Data := TSpineExVertices.Create;
+
+  FSpineVB_UI := TavVB.Create(FMain);
+  FSpineVB_UI.CullMode := cmNone;
+  FSpineVB_UI.PrimType := ptTriangles;
+  FSpineVB_UI.Vertices := FSpineVB_UI_Data As IVerticesData;
+
   FLights := TLightInfoArr.Create();
   FShadowCasters := TShadowVertices.Create();
   FRenderBatches := TRenderBatchArr.Create();
@@ -315,7 +325,8 @@ begin
     FLights.Clear();
     FShadowCasters.Clear();
     FRenderBatches.Clear();
-    FWorld.GetAllDrawData(FRenderBatches, FLights, FShadowCasters);
+    FSpineVB_UI_Data.Clear();
+    FWorld.GetAllDrawData(FRenderBatches, FLights, FShadowCasters, FSpineVB_UI_Data);
 
     //FParticles.Simulate(FWorld.Time);
 
@@ -357,6 +368,7 @@ begin
                   FSpineProgram.SetUniform('UseDynamicLighting', 1.0)
                 else
                   FSpineProgram.SetUniform('UseDynamicLighting', 0.0);
+                FSpineProgram.SetUniform('UIRender', 0.0);
               end;
               FSpineProgram.Draw(ptTriangles, cmNone, False);
 //                FMain.States.Wireframe := False;
@@ -368,6 +380,22 @@ begin
           end;
       end;
       Inc(pb);
+    end;
+
+    if FSpineVB_UI_Data.Count > 0 then
+    begin
+      FSpineVB_UI.Invalidate;
+      FSpineProgram.Select();
+      FSpineProgram.SetAttributes(FSpineVB_UI, nil, nil);
+      FSpineProgram.SetUniform('AtlasRegionRefs', FAtlas.RegionsVB);
+      FSpineProgram.SetUniform('Atlas', FAtlas, Sampler_Linear_NoAnisotropy);
+      FSpineProgram.SetUniform('AtlasSize', FAtlas.Size);
+      FSpineProgram.SetUniform('Noise', FNoise, Sampler_Linear_NoAnisotropy);
+      FSpineProgram.SetUniform('ScreenSize', FMain.WindowSize*1.0);
+      FSpineProgram.SetUniform('LightMap', FLightMaps.LightMap, Sampler_NoFilter);
+      FSpineProgram.SetUniform('UseDynamicLighting', 0.0);
+      FSpineProgram.SetUniform('UIRender', 1.0);
+      FSpineProgram.Draw(ptTriangles, cmNone, False);
     end;
 
     FFBOMain.FrameRect := FFBO_HDR.FrameRect;

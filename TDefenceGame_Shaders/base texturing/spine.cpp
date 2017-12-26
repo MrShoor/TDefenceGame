@@ -11,8 +11,6 @@ struct VS_Input {
 
 struct VS_Output {
     float4 Pos      : SV_Position;
-    float3 WorldPos : WorldPos;
-    float3 ViewPos  : ViewPos;
     float3 TexCrd   : TexCrd;
     float4 TexClamp : TexClamp;
     float2 WrapMode : WrapMode;
@@ -24,14 +22,22 @@ struct RegionRef {
     float  Slice;
 };
 
+float2 ScreenSize;
+
+float UIRender;
 float2 AtlasSize;
 StructuredBuffer<RegionRef> AtlasRegionRefs;
 
 VS_Output VS(VS_Input In) {
     VS_Output Out;
-    Out.Pos = mul(float4(In.vsCoord, 1.0), VP_Matrix);
-    Out.WorldPos = In.vsCoord;
-    Out.ViewPos = mul(float4(In.vsCoord, 1.0), V_Matrix).xyz;
+    if (UIRender) {
+        Out.Pos.zw = float2(0,1);
+        Out.Pos.xy = In.vsCoord.xy/ScreenSize;
+        Out.Pos.xy -= 0.5;
+        Out.Pos.xy *= float2(2.0,2.0);
+    } else {
+        Out.Pos = mul(float4(In.vsCoord, 1.0), VP_Matrix);
+    }
     Out.TexCrd.xy = In.vsTexCrd;
     Out.WrapMode = In.vsWrapMode;
     
@@ -64,7 +70,6 @@ struct PS_Output {
 Texture2DArray Atlas; SamplerState AtlasSampler;
 Texture2D Noise; SamplerState NoiseSampler;
 
-float2 ScreenSize;
 float  UseDynamicLighting;
 
 float4 textureNoTile( in float2 x, out float f)
@@ -132,5 +137,6 @@ PS_Output PS(VS_Output In) {
         float4 LightK = LightMap.Load(int3(In.Pos.xy, 0));
         Out.Color.rgb *= LightK.rgb;
     }
+
     return Out;
 }

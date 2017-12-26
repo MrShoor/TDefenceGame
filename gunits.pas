@@ -9,6 +9,7 @@ interface
 
 uses
   Classes, SysUtils,
+  avRes,
   gWorld, gTypes, gBullets,
   UPhysics2D, UPhysics2DTypes,
   B2Utils,
@@ -139,6 +140,8 @@ type
   protected
     procedure DoFire(); override;
   public
+    procedure DrawUI(const ASpineVertices: ISpineExVertices); override;
+  public
     procedure SetWeapon(const AWeapon: TPlayerWeapon);
 
     procedure RotateBy(AAngle: Single); override;
@@ -252,7 +255,6 @@ procedure TTowerTank.ShootWithTesla;
 var ownerInfo: TOwnerInfo;
     ray: TTeslaRay;
     firePos: TVec2;
-    fireDir: TVec2;
 begin
   ownerInfo.Init(Self, bokPlayer);
 
@@ -454,6 +456,14 @@ begin
   FFireBones := FOtherBones;
 end;
 
+procedure TPlayer.DrawUI(const ASpineVertices: ISpineExVertices);
+var test: ISpriteIndexArr;
+begin
+  inherited;
+  test := World.ObtainGlyphs('Test', 'Arial', 24);
+  Draw_UI_Text(ASpineVertices, test, Vec(50, 50), Vec(1,0,0,1));
+end;
+
 function TPlayer.GetDefaultSkin: string;
 begin
   Result := cPlayerSkinName[pwMachineGun];
@@ -469,6 +479,7 @@ end;
 
 function TPlayer.GetReloadDuration: Integer;
 begin
+  Result := 1000;
   case FActiveWeapon of
     pwMachineGun: Result := 150;
     pwRocket    : Result := 1300;

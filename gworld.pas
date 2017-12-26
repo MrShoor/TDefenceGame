@@ -12,6 +12,7 @@ uses
   gTypes,
   mutils,
   avContnrs, avContnrsDefaults,
+  avTypes,
   avRes,
   UPhysics2D, UPhysics2DTypes, B2Utils,
   intfUtils,
@@ -68,6 +69,7 @@ type
     procedure Draw(const ASpineVertices: ISpineExVertices); virtual;
     procedure DrawLightSources(const ALights: ILightInfoArr); virtual;
     procedure DrawShadowCasters(const AShadowCasters: IShadowVertices); virtual;
+    procedure DrawUI(const ASpineVertices: ISpineExVertices); virtual;
 
     function  HasParticles: Boolean; virtual;
     procedure DrawParticles(const AParticlesArr: IParticleGroupArr); virtual;
@@ -98,7 +100,7 @@ type
     procedure SetDir(const Value: TVec2); override;
     procedure SetPos(const Value: TVec2); override;
     procedure SetSize(const Value: TVec2); override;
-
+  public
     procedure AfterConstruction; override;
   end;
 
@@ -198,6 +200,33 @@ type
   end;
   PWorldCommonTextures = ^TWorldCommonTextures;
 
+  TGlypsCache = class (TInterfacedObjectEx)
+  private type
+    TGlyphKey = packed record
+      ch  : WideChar;
+      font: string;
+      size: Integer;
+    end;
+
+    TKeyEqualityComparer = class(TInterfacedObject, IEqualityComparer)
+    private
+      function Hash(const Value): Cardinal;
+      function IsEqual(const Left, Right): Boolean;
+    end;
+
+    IGlyphsMap = {$IfDef FPC}specialize{$EndIf} IHashMap<TGlyphKey, ISpriteIndex>;
+    TGlyphsMap = {$IfDef FPC}specialize{$EndIf} THashMap<TGlyphKey, ISpriteIndex>;
+  private
+    FAtlas : TavAtlasArrayReferenced;
+    FGlyphs: IGlyphsMap;
+
+    function RenderGlyph(const AGlyph: WideChar; const AFont: string; const ASize: Integer): ITextureMip;
+  public
+    function  ObtainGlyph(const AGlyph: WideChar; const AFont: string; const ASize: Integer): ISpriteIndex;
+    procedure ObtainGlyphs(const AGlyphs: string; const AFont: string; const ASize: Integer; const AOut: ISpriteIndexArr);
+    constructor Create(const AAtlas: TavAtlasArrayReferenced);
+  end;
+
   { TWorld }
 
   TWorld = class
@@ -253,6 +282,7 @@ type
 
     FAtlas: TavAtlasArrayReferenced;
     FCommonTextures: TWorldCommonTextures;
+    FGlyphsCache: TGlypsCache;
 
     FInDestroy: Boolean;
   public
@@ -274,7 +304,9 @@ type
     function QueryObjects(const APt: TVec2; ARad: Single; const AFilter: TQueryFilter): IGameObjArr;
     function RayCast(const AStart, AStop: TVec2; out HitPt: TVec2; const AFilter: TQueryFilter): TGameBody; overload;
 
-    procedure GetAllDrawData(const ARenderBatches: IRenderBatchArr; const ALights: ILightInfoArr; const AShadowCasters: IShadowVertices);
+    procedure GetAllDrawData(const ARenderBatches: IRenderBatchArr; const ALights: ILightInfoArr; const AShadowCasters: IShadowVertices; const AUI: ISpineExVertices);
+
+    function ObtainGlyphs(const AGlyphs: string; const AFont: string; const ASize: Integer): ISpriteIndexArr;
 
     constructor Create(const AAtlas: TavAtlasArrayReferenced);
     destructor Destroy; override;
@@ -285,10 +317,12 @@ procedure Draw_Line  (const AVert: ISpineExVertices; const APattern: ISpriteInde
 procedure Draw_Rect  (const AVert: ISpineExVertices; const APattern: ISpriteIndex; const pt1, pt2, pt3, pt4: TVec2; width: Single; const color: TVec4); overload;
 procedure Draw_Rect  (const AVert: ISpineExVertices; const APattern: ISpriteIndex; const pos, dir, size: TVec2; width: Single; const color: TVec4); overload;
 
+procedure Draw_UI_Text(const AVert: ISpineExVertices; const ASymbols: ISpriteIndexArr; const APos: TVec2; const color: TVec4);
+
 implementation
 
 uses
-  Math, avTexLoader, gUnits;
+  Math, avTexLoader, gUnits, avGlyphGenerator;
 
 const
   QuadCrd: array[0..3] of TVec2 = (
@@ -380,6 +414,22 @@ begin
   pts[2] := hsize * m + pos;
   pts[3] := Vec( hsize.x, -hsize.y) * m + pos;
   Draw_Rect(AVert, APattern, pts[0], pts[1], pts[2], pts[3], width, color);
+end;
+
+procedure Draw_UI_Text(const AVert: ISpineExVertices; const ASymbols: ISpriteIndexArr; const APos: TVec2; const color: TVec4);
+var i: Integer;
+    s, p: TVec2;
+begin
+  if ASymbols = nil then Exit;
+  p := APos;
+  for i := 0 to ASymbols.Count - 1 do
+  begin
+    s.x := ASymbols[i].Data.Width;
+    s.y := ASymbols[i].Data.Height;
+    p.x := p.x + s.x * 0.5;
+    Draw_Sprite(AVert, p, Vec(1,0), s, ASymbols[i], @color);
+    p.x := p.x + s.x * 0.5;
+  end;
 end;
 
 { TDrawObjectZSort }
@@ -869,6 +919,12 @@ begin
   Result := @FCommonTextures;
 end;
 
+function TWorld.ObtainGlyphs(const AGlyphs, AFont: string; const ASize: Integer): ISpriteIndexArr;
+begin
+  Result := TSpriteIndexArr.Create();
+  FGlyphsCache.ObtainGlyphs(AGlyphs, AFont, ASize, Result);
+end;
+
 procedure TWorld.UpdateStep(const ANewCameraPos: TVec2);
 var obj: TGameObject;
     lPos: TListenerPos;
@@ -954,7 +1010,7 @@ begin
   Result := nil;
 end;
 
-procedure TWorld.GetAllDrawData(const ARenderBatches: IRenderBatchArr; const ALights: ILightInfoArr; const AShadowCasters: IShadowVertices);
+procedure TWorld.GetAllDrawData(const ARenderBatches: IRenderBatchArr; const ALights: ILightInfoArr; const AShadowCasters: IShadowVertices; const AUI: ISpineExVertices);
 var gobj : TGameObject;
     objList: IGameObjArr;
     zSort : IComparer;
@@ -1012,6 +1068,7 @@ begin
 
     gobj.DrawLightSources(ALights);
     gobj.DrawShadowCasters(AShadowCasters);
+    gobj.DrawUI(AUI);
   end;
 end;
 
@@ -1034,6 +1091,8 @@ begin
   FSndPlayer := GetLightPlayer;
 
   FCommonTextures.Load(FAtlas);
+
+  FGlyphsCache := TGlypsCache.Create(FAtlas);
 end;
 
 destructor TWorld.Destroy;
@@ -1043,6 +1102,7 @@ begin
   FInDestroy := True;
   FSndPlayer := nil;
 
+  FreeAndNil(FGlyphsCache);
   FreeAndNil(FRayCaster);
   FreeAndNil(FTreeQuery);
   FreeAndNil(Fb2ContactListener);
@@ -1157,6 +1217,11 @@ begin
   end;
 end;
 
+procedure TGameObject.DrawUI(const ASpineVertices: ISpineExVertices);
+begin
+
+end;
+
 function TGameObject.HasParticles: Boolean;
 begin
   Result := False;
@@ -1183,6 +1248,63 @@ begin
     FWorld.FUpdateSubs.Delete(Self);
   end;
   inherited Destroy;
+end;
+
+{ TGlypsCache.TKeyEqualityComparer }
+
+function TGlypsCache.TKeyEqualityComparer.Hash(const Value): Cardinal;
+var V: TGlyphKey absolute Value;
+    fl: string;
+begin
+  Result := Murmur2DefSeed(V.ch, SizeOf(WideChar));
+  if Length(V.font) > 0 then
+    Result := Result xor Murmur2DefSeed(V.font[1], Length(V.font)*SizeOf(Char));
+  Result := Result xor Murmur2DefSeed(V.size, SizeOf(v.size));
+end;
+
+function TGlypsCache.TKeyEqualityComparer.IsEqual(const Left, Right): Boolean;
+var L: TGlyphKey absolute Left;
+    R: TGlyphKey absolute Right;
+begin
+  Result := (L.ch = R.ch) and (L.size = R.size) and (L.font = R.font);
+end;
+
+{ TGlypsCache }
+
+constructor TGlypsCache.Create(const AAtlas: TavAtlasArrayReferenced);
+var eq: IEqualityComparer;
+begin
+  eq := TKeyEqualityComparer.Create;
+  FAtlas := AAtlas;
+  FGlyphs:= TGlyphsMap.Create(eq);
+end;
+
+function TGlypsCache.ObtainGlyph(const AGlyph: WideChar; const AFont: string; const ASize: Integer): ISpriteIndex;
+var key: TGlyphKey;
+begin
+  key.ch := AGlyph;
+  key.font := AFont;
+  key.size := ASize;
+  if not FGlyphs.TryGetValue(key, Result) then
+  begin
+    Result := FAtlas.ObtainSprite( RenderGlyph(AGlyph, AFont, ASize) );
+    FGlyphs.AddOrSet(key, Result);
+  end;
+end;
+
+procedure TGlypsCache.ObtainGlyphs(const AGlyphs: string; const AFont: string; const ASize: Integer; const AOut: ISpriteIndexArr);
+var s: WideString;
+    i: Integer;
+begin
+  s := WideString(AGlyphs);
+  for i := 1 to Length(s) do
+    AOut.Add(ObtainGlyph(s[i], AFont, ASize));
+end;
+
+function TGlypsCache.RenderGlyph(const AGlyph: WideChar; const AFont: string; const ASize: Integer): ITextureMip;
+var ABCMetrics: TVec3i;
+begin
+  Result := GenerateGlyphImage(AFont, AGlyph, ASize, False, False, False, ABCMetrics);
 end;
 
 end.
